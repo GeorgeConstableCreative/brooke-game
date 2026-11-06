@@ -617,7 +617,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
 <div id="skip" class="sticker chip" hidden>Tap to skip ▸</div>
 
 <section id="title" class="screen title-screen">
-  <span class="verlabel" aria-label="Version 48">v48</span>
+  <span class="verlabel" aria-label="Version 49">v49</span>
   <div class="card sticker peel title-card">
     <h1>Merry Christmas, Brooke!</h1>
     <nav class="tmenu" aria-label="Main menu">
@@ -2479,7 +2479,7 @@ $('howClose').onclick=()=>show('howto',false);
 // to the front it asks GitHub for the newest page; if that is a newer version it reloads, but only on the home page.
 (function autoUpdate(){ try {
   if (!/^https?:$/.test(location.protocol)) return;
-  const BUILD=48; let pending=0, busy=false, last=0;
+  const BUILD=49; let pending=0, busy=false, last=0;
   const tried=()=>{ try { return +sessionStorage.getItem('gb-upd-tried')||0; } catch(e){ return 0; } };
   async function check(){
     const now=Date.now(); if (busy || now-last<4000) return; busy=true; last=now;
@@ -2635,9 +2635,13 @@ const MINIS = (() => {
                                   Bk(790,GY,72,72,'gift'),Bk(790,568,62,62,'ice'),Bk(790,506,50,50,'gift'),Tg(790,456)] }),
       ()=>{ const b=[]; [600,662,724,786].forEach(x=>b.push(Bk(x,GY,62,60,'ice'))); [631,693,755].forEach(x=>b.push(Bk(x,580,62,60,'wood'))); [662,724].forEach(x=>b.push(Bk(x,520,62,60,'ice'))); b.push(Bk(693,460,54,54,'gift')); b.push(Tg(693,406)); b.push(Tg(515,GY)); b.push(Tg(868,GY)); return { shots:5, bodies:b }; }
     ];
-    function fit(){ const bd=miniBand(); const k=Math.min(CW/W0,(bd.b-bd.t)/H0); view={k, ox:(CW-W0*k)/2, oy:bd.b-H0*k}; }
+    function fit(){ const bd=miniBand(), availH=bd.b-bd.t, port=CH>CW*1.05;
+      const VH = !port && availH<520 ? H0-270 : H0;   // short sideways screens: crop the empty sky so the action is bigger
+      const k = port ? Math.min(availH/H0, CW/430) : Math.min(CW/W0, availH/VH), visW=CW/k, maxCam=Math.max(0,W0+20-visW), cam=clamp(S?S.camX:0,0,maxCam);
+      view={k, visW, maxCam, ox: maxCam>0 ? -cam*k : (CW-W0*k)/2, oy:bd.b-H0*k}; }
+    let best=0; try { best=+localStorage.getItem('gb-sling-best')||0; } catch(e){}
     function toWorld(x,y){ return { x:(x-view.ox)/view.k, y:(y-view.oy)/view.k }; }
-    function load(n){ const L=LAYOUTS[n](); S.level=n; S.bodies=L.bodies; S.shots=L.shots; S.ball=newBall(); S.state='ready'; S.waitT=0; S.parts=[]; S.texts=[]; S.flyT=0; info(); }
+    function load(n){ const L=LAYOUTS[n](); S.level=n; S.bodies=L.bodies; S.shots=L.shots; S.ball=newBall(); S.state='ready'; S.waitT=0; S.parts=[]; S.texts=[]; S.flyT=0; S.sweep=2.2; S.shake=0; S.levelStartScore=S.score; info(); }
     function newBall(){ return {x:REST.x,y:REST.y,vx:0,vy:0,r:18,rest:0}; }
     function info(){ miniInfo(`Level ${S.level+1}/3 · ❄ ${S.shots} left · ${S.score} pts`); }
     function targetsLeft(){ return S.bodies.filter(b=>b.kind==='snow'&&!b.dead).length; }
@@ -2647,7 +2651,7 @@ const MINIS = (() => {
     function supported(b){ if (Math.abs(b.y+b.h-GY)<2.5) return true; const bot=b.y+b.h;
       for (const o of S.bodies){ if (o===b||o.dead) continue; if (Math.abs(o.y-bot)<3.5){ const ov=Math.min(b.x+b.w,o.x+o.w)-Math.max(b.x,o.x); if (ov>Math.min(b.w,o.w)*.18) return true; } } return false; }
     function hitBody(b,vx,vy,sp){ if (b.kind==='snow'){ if (sp>140) pop(b); else { wake(b); b.vx+=vx*.4; } return; }
-      if (sp>80) wake(b); const m=Math.max(.6,(b.w*b.h)/3200); b.vx+=vx*.5/m; b.vy+=vy*.25/m-30; b.vr+=(Math.random()-.5)*sp*.012; b.hp-=sp/520; if (b.hp<=0) smash(b); }
+      if (sp>80) wake(b); const m=Math.max(.6,(b.w*b.h)/3200); b.vx+=vx*.5/m; b.vy+=vy*.25/m-30; b.vr+=(Math.random()-.5)*sp*.012; b.hp-=sp/520; if (b.hp<=0) smash(b); S.shake=Math.min(.3,sp/2400); }
     function physics(h){
       const ball=S.ball;
       if (S.state==='fly' && ball){
@@ -2675,20 +2679,27 @@ const MINIS = (() => {
       for (const b of S.bodies){ if (!b.dead && !b.awake && !supported(b)) wake(b); }
     }
     function evaluate(){ if (targetsLeft()===0){ const bonus=S.shots*1000; S.score+=bonus; info(); confettiRain(); Snd.sfx.fanfare(); Snd.swell(5);
-        const last=S.level>=LAYOUTS.length-1; if (last) markDone('sling');
-        setTimeout(()=>miniCard(last?'All levels cleared':'Level '+(S.level+1)+' cleared', last?'You toppled them all!':'Snowmen toppled!', `${bonus?`+${bonus} bonus for ${S.shots} snowball${S.shots>1?'s':''} left. `:''}Score: ${S.score}`,
-          last?[['Play again',()=>{ S.score=0; load(0); }],['Back to arcade',exitToArcade,true]]:[['Next level',()=>load(S.level+1)],['Back to arcade',exitToArcade,true]]),900); S.state='over'; return; }
+        const last=S.level>=LAYOUTS.length-1; let nb=false; if (last){ markDone('sling'); if (S.score>best){ best=S.score; nb=true; try { localStorage.setItem('gb-sling-best',best); } catch(e){} } }
+        setTimeout(()=>miniCard(last?'All 3 levels cleared ⭐⭐⭐':'Level '+(S.level+1)+' of 3 cleared', last?(nb?'New best score!':'You toppled them all!'):'Snowmen toppled!', `${bonus?`+${bonus} bonus for ${S.shots} snowball${S.shots>1?'s':''} left. `:''}Score: ${S.score}${last&&!nb&&best?` · Best: ${best}`:''}`,
+          last?[['Play again',()=>{ S.score=0; load(0); }],['Back to arcade',exitToArcade,true]]:[['Next level',()=>load(S.level+1)],['Start over',()=>{ S.score=0; load(0); },true]]),900); S.state='over'; return; }
       if (S.shots>0){ S.ball=newBall(); S.state='ready'; return; }
-      S.state='over'; Snd.sfx.beep(); setTimeout(()=>miniCard('Out of snowballs',`${targetsLeft()} snowm${targetsLeft()>1?'en':'an'} still standing`,'Pull back further for a faster snowball, and aim for what is holding them up.',[['Try again',()=>{ S.score=Math.max(0,S.score-0); load(S.level); }],['Back to arcade',exitToArcade,true]]),500); }
+      S.state='over'; Snd.sfx.beep(); setTimeout(()=>miniCard('Out of snowballs',`${targetsLeft()} snowm${targetsLeft()>1?'en':'an'} still standing`,'Pull back further for a faster snowball, and aim for what is holding them up.',[['Try again',()=>{ S.score=S.levelStartScore||0; load(S.level); }],['Start over',()=>{ S.score=0; load(0); },true],['Back to arcade',exitToArcade,true]]),500); }
     return {
       title:'Snowball Slingshot', song:'deck',
-      start(){ S={score:0}; load(0); fit(); $('miniHint').classList.add('top'); miniHint(MOB()?'Drag back anywhere and let go to fling a snowball. Topple every grumpy snowman!':'Click and drag back anywhere, then let go to fling a snowball. Topple every grumpy snowman!'); },
+      start(){ S={score:0,camX:0,ready:true}; load(0); fit();
+        miniCard('Snowball Slingshot','Topple every grumpy snowman!',`${MOB()?'Drag back anywhere':'Click and drag back anywhere'} on the screen, then let go to fling a snowball. Knock out what holds the snowmen up. 3 levels, and every snowball you don't need is worth a 1,000 point bonus.${best?` Best score: ${best}.`:''}`,
+          [['Start',()=>{ S.ready=false; Snd.sfx.door(); }],['Back to arcade',exitToArcade,true]]); },
+      _st:()=>S, _view:()=>view,
       stop(){ S=null; },
-      update(dt){ if (!S) return; fit(); const n=3; for (let i=0;i<n;i++) physics(dt/n);
+      update(dt){ if (!S) return; fit(); if (S.ready) return;
+        S.sweep=Math.max(0,S.sweep-dt); S.shake=Math.max(0,S.shake-dt);
+        { let target=0; if (S.ball && S.state==='fly') target=S.ball.x-view.visW*.35; else if (S.sweep>.7) target=view.maxCam; else if (S.state==='settle') target=S.camX;
+          S.camX+=(clamp(target,0,view.maxCam)-S.camX)*(1-Math.exp(-(S.state==='fly'?6:2.4)*dt)); }
+        const n=3; for (let i=0;i<n;i++) physics(dt/n);
         if (S.state==='fly') S.flyT+=dt;
         if (S.state==='settle'){ S.waitT+=dt; const moving=S.bodies.some(b=>!b.dead&&b.awake); if ((!moving && S.waitT>.5) || S.waitT>3.5) evaluate(); }
         stepParts(S.parts,dt); for (const t of S.texts) t.t+=dt; S.texts=S.texts.filter(t=>t.t<1); for (const b of S.bodies) if (b.kind==='snow') b.bob+=dt*2.2; },
-      down(x,y){ if (!S||S.state!=='ready') return; S.state='drag'; S.drag={sx:x,sy:y,px:0,py:0}; },
+      down(x,y){ if (!S||S.ready||S.state!=='ready'||S.sweep>.25) return; S.state='drag'; S.drag={sx:x,sy:y,px:0,py:0}; Snd.sfx.catch(); },
       move(x,y){ if (!S||S.state!=='drag') return; let px=(x-S.drag.sx)/view.k, py=(y-S.drag.sy)/view.k; const m=Math.hypot(px,py); if (m>MAXPULL){ px*=MAXPULL/m; py*=MAXPULL/m; } S.drag.px=px; S.drag.py=py; S.ball.x=REST.x+px; S.ball.y=REST.y+py; },
       up(){ if (!S||S.state!=='drag') return; const {px,py}=S.drag; if (Math.hypot(px,py)<18){ S.ball=newBall(); S.state='ready'; return; }
         S.ball.vx=-px*POW; S.ball.vy=-py*POW; S.state='fly'; S.flyT=0; S.shots--; info(); Snd.sfx.zap(); miniHint(''); },
@@ -2698,7 +2709,7 @@ const MINIS = (() => {
         c.fillStyle='#e9c3e0'; c.beginPath(); c.moveTo(0,gy-40*k); c.quadraticCurveTo(CW*.3,gy-120*k,CW*.6,gy-50*k); c.quadraticCurveTo(CW*.85,gy-10*k,CW,gy-70*k); c.lineTo(CW,CH); c.lineTo(0,CH); c.fill();
         c.fillStyle='#ffffff'; c.fillRect(0,gy,CW,CH-gy); c.fillStyle='rgba(205,184,255,.35)'; c.fillRect(0,gy+16*k,CW,CH-gy);
         snowfall(c,CW,CH,t,40);
-        c.save(); c.translate(ox,oy); c.scale(k,k);
+        c.save(); if (S.shake>0) c.translate((Math.random()-.5)*S.shake*40,(Math.random()-.5)*S.shake*30); c.translate(ox,oy); c.scale(k,k);
         // Brooke cheering beside the slingshot
         Art.mochi(c,62,GY,{s:1.05,t,happy:S.state!=='over'||targetsLeft()===0,zap:S.state==='fly'&&S.flyT<.3?1:0,scarf:true});
         // candy-cane slingshot
@@ -2717,11 +2728,20 @@ const MINIS = (() => {
           else if (b.kind==='wood'){ stick(c,()=>rr(c,-w/2,-h/2,w,h,6),'#c27a44',3,1.5); c.strokeStyle='#fff'; c.lineWidth=3; c.beginPath(); if (w>h){ for (let xx=-w/2+8;xx<w/2-6;xx+=12){ c.moveTo(xx,-h/2+5); c.quadraticCurveTo(xx+3,-h/2+10,xx+6,-h/2+5); } } else { for (let yy=-h/2+8;yy<h/2-6;yy+=12){ c.moveTo(-w/2+5,yy); c.quadraticCurveTo(-w/2+10,yy+3,-w/2+5,yy+6); } } c.stroke(); }
           else { stick(c,()=>rr(c,-w/2,-h/2,w,h,6),b.col,3,1.5); c.fillStyle='#fff'; c.fillRect(-w*.08,-h/2,w*.16,h); c.fillRect(-w/2,-h*.08,w,h*.16); c.beginPath(); c.ellipse(-w*.14,-h/2-3,w*.14,h*.09,-.4,0,7); c.ellipse(w*.14,-h/2-3,w*.14,h*.09,.4,0,7); c.fill(); }
           c.restore(); }
+        // snowballs waiting their turn, lined up on the snow
+        { const loaded=S.ball&&(S.state==='drag'||S.state==='ready'); for (let i=0;i<S.shots-(loaded?1:0);i++){ const bx=REST.x+64+i*30, by=GY-13; stick(c,()=>c.arc(bx,by,13,0,7),'#ffffff',3,1.4); c.fillStyle='rgba(159,208,245,.6)'; c.beginPath(); c.arc(bx+4,by+4,8,0,Math.PI*.9); c.fill(); } }
         // snowball
         if (S.ball){ const b=S.ball; stick(c,()=>c.arc(b.x,b.y,b.r,0,7),'#ffffff',3,1.6); c.fillStyle='rgba(159,208,245,.6)'; c.beginPath(); c.arc(b.x+5,b.y+5,b.r*.6,0,Math.PI*.9); c.fill(); }
         drawParts(c,S.parts);
         c.font='900 26px Nunito, sans-serif'; c.textAlign='center'; for (const tx of S.texts){ c.globalAlpha=1-tx.t; c.fillStyle='#fff'; c.strokeStyle=INK; c.lineWidth=5; c.strokeText(tx.txt,tx.x,tx.y-tx.t*50); c.fillText(tx.txt,tx.x,tx.y-tx.t*50); } c.globalAlpha=1;
-        c.restore(); }
+        c.restore();
+        // "LEVEL n" while the camera shows the snowmen, then a pulsing tip on the very first shot
+        const bd=miniBand();
+        if (!S.ready && S.sweep>0){ const a=Math.min(1,S.sweep*2.5); c.save(); c.globalAlpha=a; c.font='400 40px "Mochiy Pop One", Nunito, sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.lineWidth=9; c.strokeStyle='#fff'; c.fillStyle='#e8508f';
+          const ty=bd.t+(bd.b-bd.t)*.3; c.strokeText(`LEVEL ${S.level+1}`,CW/2,ty); c.fillText(`LEVEL ${S.level+1}`,CW/2,ty);
+          c.font='800 17px Nunito, sans-serif'; c.lineWidth=6; const n=targetsLeft(); c.strokeText(`${n} grumpy snowm${n>1?'en':'an'} to topple`,CW/2,ty+38); c.fillStyle='#5a2a48'; c.fillText(`${n} grumpy snowm${n>1?'en':'an'} to topple`,CW/2,ty+38); c.restore(); }
+        else if (!S.ready && S.state==='ready' && S.level===0 && S.shots===LAYOUTS[0]().shots){ const tip=MOB()?'Drag back anywhere, then let go':'Click, drag back, then let go'; c.save(); c.globalAlpha=.55+.45*Math.sin(t*4);
+          c.font='800 16px Nunito, sans-serif'; const w=c.measureText(tip).width+34, y=bd.t+30; c.fillStyle='rgba(42,29,88,.85)'; c.beginPath(); c.roundRect(CW/2-w/2,y-18,w,36,18); c.fill(); c.fillStyle='#fff'; c.textAlign='center'; c.textBaseline='middle'; c.fillText(tip,CW/2,y+1); c.restore(); } }
     };
   })();
 
