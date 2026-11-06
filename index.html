@@ -497,7 +497,8 @@ html.compact #menu .mitem{min-height:56px;padding:8px 10px;gap:8px;font-size:.9r
 html.compact #menu .mnum{width:32px;height:32px;font-size:.88rem}
 html.compact #menu .mtick{width:20px;height:20px}
 html.compact .lt-word{display:none}
-html.compact .lt-ic{display:inline}
+html.compact .lt-ic{display:inline-block;font-size:1.75em;line-height:.8;margin:-6px 0 -6px -4px;vertical-align:middle;filter:drop-shadow(0 2px 0 rgba(90,42,72,.18));transform:rotate(-8deg)}
+html.compact #listToggle .num{font-size:1.05em}
 html.compact #topbar{top:max(8px,env(safe-area-inset-top,0px));right:max(10px,env(safe-area-inset-right,0px));gap:8px}
 html.compact #menuBtn{width:44px;height:44px}
 html.compact #menuBtn svg{width:22px;height:22px}
@@ -596,7 +597,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
 <div id="skip" class="sticker chip" hidden>Tap to skip ▸</div>
 
 <section id="title" class="screen title-screen">
-  <span class="verlabel" aria-label="Version 41">v41</span>
+  <span class="verlabel" aria-label="Version 42">v42</span>
   <div class="card sticker peel title-card">
     <h1>Merry Christmas, Brooke!</h1>
     <nav class="tmenu" aria-label="Main menu">
@@ -2326,9 +2327,12 @@ $('homeBtn').onclick=e=>{ goHome(); e.currentTarget.blur(); };
 // Skip: in a cut-scene it skips the scene; anywhere else in the story it jumps to the next section.
 const NEXT_CHAP={ santana:'taxi', taxi:'airport', airport:'flight', flight:'logan', logan:'finale', finale:'credits' };
 const SKIP_MODES=['play','bonus','cut','trans','msg','msgwait','end'];
-function skipSection(){ if (MENU.open) return; resumeGame();
-  if (G.mode==='cut' && CUT){ CUT.t=Math.max(CUT.t,.7); skipCut(); return; }
-  const nx=NEXT_CHAP[G.chap]; if (nx) jump(nx); }
+// Skip always goes straight to the next section of the story, from any screen of the current one
+// (its intro card, a cutscene, the level itself, an Adele call or the Mission complete card).
+function skipSection(){ if (MENU.open) closeMenu(); resumeGame();
+  if (G.mode==='cut' && G.chap==='finale'){ CUT=null; show('skipBtn',false); showEnd(); Snd.sfx.door(); return; }   // limo → Mission complete card
+  CUT=null;
+  const nx=NEXT_CHAP[G.chap]; if (nx){ jump(nx); Snd.sfx.door(); } }
 $('skipBtn').onclick=e=>{ skipSection(); e.currentTarget.blur(); };
 paintPause();
 $('menuClose').onclick=closeMenu;
@@ -2445,7 +2449,7 @@ $('howClose').onclick=()=>show('howto',false);
 // to the front it asks GitHub for the newest page; if that is a newer version it reloads, but only on the home page.
 (function autoUpdate(){ try {
   if (!/^https?:$/.test(location.protocol)) return;
-  const BUILD=41; let pending=0, busy=false, last=0;
+  const BUILD=42; let pending=0, busy=false, last=0;
   const tried=()=>{ try { return +sessionStorage.getItem('gb-upd-tried')||0; } catch(e){ return 0; } };
   async function check(){
     const now=Date.now(); if (busy || now-last<4000) return; busy=true; last=now;
@@ -2840,7 +2844,7 @@ const MINIS = (() => {
       gift:[{x:592,y:470},{x:666,y:484},{x:742,y:470}], stock:[{x:372,y:304},{x:528,y:304}] };
     const KIND=id=> id==='star'?'star' : (id==='orn'||id==='cane'||id==='bow'||id==='lights')?'tree' : id==='gift'?'gift' : id==='stock'?'stock' : null;
     const STEPS=[['star','Put the star on top of the tree','⭐',['star']],['tree','Hang 5 decorations on the tree','🎄',['orn','cane','bow','lights']],['gift','Put 3 presents under the tree','🎁',['gift']],['stock','Hang 2 stockings on the mantel','🧦',['stock']]];
-    const TIME=120, BONUS=30;
+    const TIME=60, BONUS=30;
     // surfaces things can stand on: the mantel top, the window sill and the floor. Standing items rest their base on one.
     const SURF={ mantel:{x0:322,x1:578,y:246}, sill:{x0:64,x1:246,y:262}, floorTop:458, floorBot:626 };
     const STAND={ candle:.42, globe:.38, cookies:.28, ginger:.46 };          // how far each item's base sits below its centre
@@ -2886,11 +2890,11 @@ const MINIS = (() => {
       if (S.phase==='bonus'||S.phase==='end'){ const b=Math.max(0,Math.ceil(S.bonusT)); miniInfo(S.phase==='end'?`Finished · ${S.score} pts`:`🎉 Bonus round · ${S.score} pts · ⏱ 0:${String(b).padStart(2,'0')}${S.combo>1?` · combo x${S.combo}`:''}`); }
       else miniInfo(`${st<0?'All done!':`Step ${st+1} of 4: ${STEPS[st][2]} ${STEPS[st][1]}`} · ${S.score} pts · 😴 ${clock}`);
       document.querySelectorAll('#cozyTray .titem').forEach(b=>b.classList.toggle('need', S.phase==='bonus' ? !S.seen[b.dataset.id] : st>=0 && STEPS[st][3].includes(b.dataset.id)));
-      if (g.all && !S.done){ markDone('cozy'); S.done=true; S.doneT=0; S.pts.time=Math.ceil(S.time)*10; S.score+=S.pts.time;
+      if (g.all && !S.done){ markDone('cozy'); S.done=true; S.doneT=0; S.pts.time=Math.ceil(S.time)*20; S.score+=S.pts.time;
         S.phase='bonus'; S.bonusT=BONUS; S.combo=0; S.lastPlace=-9; S.banner={t:0,txt:'Bonus round!',sub:`Time bonus +${S.pts.time} · 30 seconds of extra decorating!`};
         confettiRain(); Snd.sfx.fanfare(); Snd.swell(8); info(); } }
     function finish(){ S.over=true; S.phase='end'; let best=0; try { best=+localStorage.getItem('gb-cozy-best')||0; } catch(e){}
-      const n=S.score>=3500?3:S.score>=2400?2:1, newBest=S.score>best; if (newBest) try { localStorage.setItem('gb-cozy-best',S.score); } catch(e){}
+      const n=S.score>=3600?3:S.score>=2600?2:1, newBest=S.score>best; if (newBest) try { localStorage.setItem('gb-cozy-best',S.score); } catch(e){}
       Snd.sfx.fanfare(); confettiRain(); info();
       setTimeout(()=>{ if (S) miniCard('Cottage complete '+'⭐'.repeat(n)+'☆'.repeat(3-n), newBest?'New best score!':'So cozy!',
         `Decorating ${S.pts.decor} · Time bonus ${S.pts.time} · Bonus round ${S.pts.bonus}. Total ${S.score} points${newBest?'':` (best ${best})`}. Brooke wakes up to a perfect Christmas.`,
@@ -2903,7 +2907,7 @@ const MINIS = (() => {
     return {
       title:'Cozy Cottage', song:'wish',
       start(again){ S={items:[],counts:{},drag:null,done:false,doneT:0,hearts:[],zz:0,time:TIME,score:0,pops:[],parts:[],ready:!again,over:false,phase:'build',bonusT:0,combo:0,lastPlace:-9,seen:{},pts:{decor:0,time:0,bonus:0},banner:null,clock:0}; show('cozyTray'); buildTray(); miniHint(''); fit(); info();
-        if (!again) miniCard('Cozy Cottage','Decorate before Brooke wakes up!',`Brooke has dozed off by the fire. Drag decorations from the tray into the glowing outlines: ⭐ the star on top, 🎄 5 decorations on the tree, 🎁 3 presents underneath and 🧦 2 stockings on the mantel. Finish within 2 minutes for a time bonus, then a 30-second bonus round: add more decorations to the mantel, window and floor for extra points. Quick placements build a combo!`,[['Start decorating',()=>{ S.ready=false; Snd.sfx.door(); }],['Back to arcade',exitToArcade,true]]); },
+        if (!again) miniCard('Cozy Cottage','Decorate before Brooke wakes up!',`Brooke has dozed off by the fire. Drag decorations from the tray into the glowing outlines: ⭐ the star on top, 🎄 5 decorations on the tree, 🎁 3 presents underneath and 🧦 2 stockings on the mantel. You have 1 minute: every second left over is bonus points. Then comes a 30-second bonus round: add more decorations to the mantel, window and floor for extra points. Quick placements build a combo!`,[['Start decorating',()=>{ S.ready=false; Snd.sfx.door(); }],['Back to arcade',exitToArcade,true]]); },
       _st:()=>S, _spots:SPOTS, _view:()=>view,
       stop(){ S=null; show('cozyTray',false); $('cozyTray').innerHTML=''; },
       down(x,y){ if (!S) return; const w=toWorld(x,y);
@@ -2986,6 +2990,9 @@ const MINIS = (() => {
         for (const q of S.parts){ c.globalAlpha=1-q.t/.8; c.fillStyle=q.col; c.beginPath(); c.arc(q.x,q.y,5,0,7); c.fill(); } c.globalAlpha=1;
         for (const pp of S.pops){ const a=pp.t/1.1; c.save(); c.globalAlpha=1-a*a; c.font=`900 ${pp.big?38:30}px Nunito, sans-serif`; c.textAlign='center'; c.lineWidth=7; c.strokeStyle='#fff'; c.fillStyle=pp.big?'#e8508f':'#c2296e'; c.strokeText(pp.txt,pp.x,pp.y-a*40); c.fillText(pp.txt,pp.x,pp.y-a*40); c.restore(); }
         // bonus countdown: a big clock at the top of the room that pulses and turns red in the last 5 seconds
+        if (S.phase==='build' && !S.ready && !S.over){ const b=Math.max(0,Math.ceil(S.time)), hot=S.time<=10, pul=1+(hot?.08:.02)*Math.sin(t*(hot?14:5));
+          c.save(); c.translate(W0/2,40); c.scale(pul,pul); c.fillStyle=hot?'#e94b5c':'#5a2a48'; c.strokeStyle='#fff'; c.lineWidth=5; c.beginPath(); c.roundRect(-118,-26,236,52,26); c.fill(); c.stroke();
+          c.fillStyle='#fff'; c.font='400 28px "Mochiy Pop One", Nunito, sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillText(`😴  0:${String(b).padStart(2,'0')}`,0,2); c.restore(); }
         if (S.phase==='bonus'){ const b=Math.max(0,Math.ceil(S.bonusT)), hot=S.bonusT<=5, pul=1+(hot?.08:.03)*Math.sin(t*(hot?14:6));
           c.save(); c.translate(W0/2,40); c.scale(pul,pul); c.fillStyle=hot?'#e94b5c':'#ff7eb6'; c.strokeStyle='#fff'; c.lineWidth=5; c.beginPath(); c.roundRect(-128,-26,256,52,26); c.fill(); c.stroke();
           c.fillStyle='#fff'; c.font='400 28px "Mochiy Pop One", Nunito, sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillText(`BONUS  0:${String(b).padStart(2,'0')}`,0,2); c.restore();
