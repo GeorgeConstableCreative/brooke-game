@@ -435,18 +435,18 @@ body:has(#xcard:not([hidden])) #topbar{z-index:50}
 .xl:nth-child(n+7){color:#3fd17a;text-shadow:0 4px 0 #0b4d27,0 6px 14px rgba(0,0,0,.35)}
 .xsp{display:inline-block;width:.35em}
 .xc-name{font-family:'Pacifico',cursive;font-size:clamp(2.4rem,12vw,4.4rem);color:#ffd76a;line-height:1.15;text-shadow:0 0 18px rgba(255,207,92,.75),0 3px 0 #9a5a00;opacity:0;transform:scale(.6)}
-.xc-go .xl{animation:xlDrop .55s cubic-bezier(.2,1.4,.4,1) calc(var(--i)*55ms) both,xlBob 2.6s ease-in-out calc(1.2s + var(--i)*90ms) infinite}
-.xc-go .xc-name{animation:xnPop .7s cubic-bezier(.2,1.5,.4,1) 1s both}
+.xc-go .xl{animation:xlDrop .6s cubic-bezier(.2,1.4,.4,1) calc(.9s + var(--i)*85ms) both,xlBob 2.6s ease-in-out calc(3.2s + var(--i)*90ms) infinite}
+.xc-go .xc-name{animation:xnPop .8s cubic-bezier(.2,1.5,.4,1) 2.4s both}
 @keyframes xlDrop{to{opacity:1;transform:none}}
 @keyframes xlBob{0%,100%{transform:none}50%{transform:translateY(-5px)}}
 @keyframes xnPop{to{opacity:1;transform:none}}
 .xc-note{position:relative;opacity:0;transform:translateY(24px) scale(.96)}
-.xc-go .xc-note{animation:xnUp .6s cubic-bezier(.2,1.2,.4,1) 1.35s both}
+.xc-go .xc-note{animation:xnUp .8s cubic-bezier(.2,1.2,.4,1) 3.1s both}
 @keyframes xnUp{to{opacity:1;transform:none}}
 /* the message is a round sticker on the front of a wrapped present with a big bow */
 .xc-present{width:min(88vw,380px);margin-top:clamp(26px,5vh,44px);filter:drop-shadow(0 14px 22px rgba(10,5,30,.45))}
 .xp-bow{position:absolute;left:50%;top:0;width:46%;transform:translate(-50%,-72%);z-index:3;filter:drop-shadow(0 4px 0 rgba(0,0,0,.18))}
-.xc-go .xp-bow{animation:xpBow 2.6s ease-in-out 2s infinite}
+.xc-go .xp-bow{animation:xpBow 2.6s ease-in-out 5s infinite}
 @keyframes xpBow{0%,100%{transform:translate(-50%,-72%) rotate(0)}10%{transform:translate(-50%,-75%) rotate(-5deg)}20%{transform:translate(-50%,-72%) rotate(4deg)}30%{transform:translate(-50%,-72%) rotate(0)}}
 .xp-lid{position:relative;z-index:2;height:clamp(26px,5vh,38px);margin:0 -10px;border-radius:10px;border:4px solid #fff;
   background:linear-gradient(90deg,transparent calc(50% - 15px),#ff5b8f calc(50% - 15px) calc(50% + 15px),transparent calc(50% + 15px)),
@@ -461,17 +461,17 @@ body:has(#xcard:not([hidden])) #topbar{z-index:50}
 .xc-msg{margin:0;font-family:var(--display);font-size:clamp(1.05rem,4.6vw,1.35rem);line-height:1.35;color:var(--ink)}
 .xc-sign{margin:10px 0 0;font-family:var(--display);font-size:clamp(.95rem,4.2vw,1.15rem);line-height:1.3;color:var(--pink-deep);text-wrap:balance}
 .xc-paw{display:inline-block;width:1.45em;height:1.45em;vertical-align:-.3em;margin-left:2px;transform:rotate(14deg);opacity:.85}
-.xc-go .xc-paw{animation:pawStamp .45s cubic-bezier(.2,1.6,.4,1) 2.1s both}
+.xc-go .xc-paw{animation:pawStamp .5s cubic-bezier(.2,1.6,.4,1) 4.2s both}
 @keyframes pawStamp{from{opacity:0;transform:rotate(14deg) scale(2.2)}to{opacity:.85;transform:rotate(14deg) scale(1)}}
 .xc-sign span{font-family:'Pacifico',cursive;color:#c98a12;font-size:1.1rem;margin-right:4px}
 .xc-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;opacity:0}
-.xc-go .xc-btns{animation:xnUp .5s ease-out 1.8s both}
+.xc-go .xc-btns{animation:xnUp .6s ease-out 4.6s both}
 /* gift wrap that tears open */
 .xc-wrap{position:absolute;inset:0;z-index:5;cursor:pointer;overflow:hidden;-webkit-tap-highlight-color:transparent}
 .xw{position:absolute;top:0;bottom:0;width:50.5%;background-color:#d8233a;
   background-image:radial-gradient(circle at 25% 30%,#ffd76a 0 3px,transparent 4px),radial-gradient(circle at 75% 70%,#ffd76a 0 2.5px,transparent 3.5px),
     linear-gradient(90deg,transparent calc(50% - 16px),#2fa36a calc(50% - 16px) calc(50% + 16px),transparent calc(50% + 16px));
-  background-size:46px 46px,46px 46px,100% 100%;transition:transform .85s cubic-bezier(.6,-.1,.3,1),opacity .85s}
+  background-size:46px 46px,46px 46px,100% 100%;transition:transform 1.7s cubic-bezier(.5,0,.2,1),opacity 1.7s ease-in}
 .xw::after{content:"";position:absolute;left:0;right:0;top:calc(50% - 16px);height:32px;background:#2fa36a;box-shadow:inset 0 3px 0 rgba(255,255,255,.25),inset 0 -3px 0 rgba(0,0,0,.15)}
 .xw-l{left:0;background-image:radial-gradient(circle at 25% 30%,#ffd76a 0 3px,transparent 4px),radial-gradient(circle at 75% 70%,#ffd76a 0 2.5px,transparent 3.5px),linear-gradient(90deg,transparent calc(100% - 16px),#2fa36a calc(100% - 16px))}
 .xw-r{right:0;background-image:radial-gradient(circle at 25% 30%,#ffd76a 0 3px,transparent 4px),radial-gradient(circle at 75% 70%,#ffd76a 0 2.5px,transparent 3.5px),linear-gradient(90deg,#2fa36a 16px,transparent 16px)}
@@ -482,12 +482,13 @@ body:has(#xcard:not([hidden])) #topbar{z-index:50}
 .xw-hint{position:absolute;left:0;right:0;bottom:max(30px,env(safe-area-inset-bottom,0px));margin:0;text-align:center;font-family:var(--display);font-size:1.2rem;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3);animation:hintPulse 1.4s ease-in-out infinite}
 @keyframes bowIdle{0%,100%{transform:translate(-50%,-58%) rotate(-2deg)}50%{transform:translate(-50%,-61%) rotate(2deg)}}
 @keyframes hintPulse{0%,100%{opacity:.55}50%{opacity:1}}
-.xc-wrap.wobble .xw-bow{animation:bowWobble .45s ease-in-out}
+.xc-wrap.wobble .xw-bow{animation:bowWobble .43s ease-in-out 3}
+.xc-wrap.pop .xw-bow{animation:none;transform:translate(-50%,-90%) scale(1.25) rotate(-6deg);transition:transform .35s cubic-bezier(.2,1.6,.4,1)}
 @keyframes bowWobble{0%{transform:translate(-50%,-58%) rotate(0)}25%{transform:translate(-50%,-58%) rotate(-14deg) scale(1.08)}50%{transform:translate(-50%,-58%) rotate(12deg) scale(1.1)}75%{transform:translate(-50%,-58%) rotate(-8deg) scale(1.06)}100%{transform:translate(-50%,-58%) rotate(0) scale(1)}}
 .xc-wrap.open{pointer-events:none}
 .xc-wrap.open .xw-l{transform:translateX(-112%) rotate(-8deg)}
 .xc-wrap.open .xw-r{transform:translateX(112%) rotate(8deg)}
-.xc-wrap.open .xw-bow{animation:none;transform:translate(-50%,-180%) scale(1.3) rotate(20deg);opacity:0}
+.xc-wrap.open .xw-bow{animation:none;transition:transform 1s cubic-bezier(.5,-.2,.4,1),opacity .9s;transform:translate(-50%,-180%) scale(1.3) rotate(20deg);opacity:0}
 .xc-wrap.open .xw-hint{opacity:0;animation:none;transition:opacity .2s}
 /* sideways phones: headline on top, letter on the left, Brooke and the tree around it */
 @media (orientation:landscape) and (max-height:520px){
@@ -497,7 +498,11 @@ body:has(#xcard:not([hidden])) #topbar{z-index:50}
   .xc-btns .btn{font-size:.95rem;padding:.5em 1.1em}
   .xw-bow{width:min(30vw,220px)}
 }
-@media (prefers-reduced-motion:reduce){.xc-paw{animation:none!important}.tbtn,.xc-holly,.xl,.xc-name,.xc-note,.xc-btns,.xw-bow,.xw-hint{animation:none!important;opacity:1!important;transform:none}.tb-spark{animation:none}}
+@media (prefers-reduced-motion:reduce){.tbtn,.xc-holly,.xw-hint{animation:none!important}.tb-spark{animation:none}
+  .xc-wrap .xw,.xc-wrap .xw-bow{transition:opacity 1.2s ease!important;transform:none!important;animation:none!important}.xc-wrap.open .xw,.xc-wrap.open .xw-bow{opacity:0}
+  .xc-go .xl,.xc-go .xc-name,.xc-go .xc-note,.xc-go .xc-btns,.xc-go .xc-paw{animation:xFade 1s ease both!important;transform:none!important}
+  .xc-go .xc-name{animation-delay:.6s!important}.xc-go .xc-note{animation-delay:1.1s!important}.xc-go .xc-btns,.xc-go .xc-paw{animation-delay:1.6s!important}.xc-go .xp-bow{animation:none!important}}
+@keyframes xFade{from{opacity:0}to{opacity:1}}
 /* ---------- compact layout for phones (set by script on narrow or portrait screens) ---------- */
 html.compact #hud{gap:6px;padding-top:max(8px,env(safe-area-inset-top,0px));padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))}
 html.compact .hud-row{max-width:calc(100% - 80px);min-height:40px;gap:6px}
@@ -611,7 +616,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
 <div id="skip" class="sticker chip" hidden>Tap to skip ▸</div>
 
 <section id="title" class="screen title-screen">
-  <span class="verlabel" aria-label="Version 46">v46</span>
+  <span class="verlabel" aria-label="Version 47">v47</span>
   <div class="card sticker peel title-card">
     <h1>Merry Christmas, Brooke!</h1>
     <nav class="tmenu" aria-label="Main menu">
@@ -2404,11 +2409,13 @@ function xcFrame(now){ const cv=$('xcScene'); if ($('xcard').hidden){ xcRAF=0; r
   xcRAF=requestAnimationFrame(xcFrame); }
 function xcUnwrap(){ if (xcOpened) return; xcOpened=true; clearTimeout(xcAuto); const w=$('xcWrap');
   w.classList.add('wobble'); try{ Snd.sfx.door(); }catch(e){}
-  setTimeout(()=>{ w.classList.add('open'); confettiRain(); try{ Snd.sfx.fanfare(); }catch(e){} $('xcLayout').classList.add('xc-go'); }, REDUCED?0:430);
-  setTimeout(()=>{ w.hidden=true; $('xcPlay').focus(); }, REDUCED?50:1300); }
+  if (!REDUCED){ setTimeout(()=>{ try{ Snd.sfx.door(); }catch(e){} },430); setTimeout(()=>{ try{ Snd.sfx.door(); }catch(e){} },860); }
+  setTimeout(()=>{ w.classList.add('pop'); try{ Snd.sfx.pop(); }catch(e){} }, REDUCED?0:1300);
+  setTimeout(()=>{ w.classList.add('open'); confettiRain(); try{ Snd.sfx.fanfare(); }catch(e){} $('xcLayout').classList.add('xc-go'); }, REDUCED?200:1650);
+  setTimeout(()=>{ w.hidden=true; $('xcPlay').focus(); }, REDUCED?1600:3600); }
 function openCard(){ Snd.init(); Snd.setMuted(muted); xcOpened=false; const w=$('xcWrap'); w.hidden=false; w.classList.remove('open','wobble'); $('xcLayout').classList.remove('xc-go');
   show('xcard'); if (!xcRAF){ xcT0=performance.now(); xcRAF=requestAnimationFrame(xcFrame); }
-  if (REDUCED) xcUnwrap(); else { setTimeout(()=>w.focus(),60); xcAuto=setTimeout(xcUnwrap,2600); } }
+  if (REDUCED){ setTimeout(()=>w.focus(),60); xcAuto=setTimeout(xcUnwrap,3500); } else { setTimeout(()=>w.focus(),60); xcAuto=setTimeout(xcUnwrap,5000); } }
 function closeCard(){ clearTimeout(xcAuto); show('xcard',false); $('cardBtn').focus(); }
 $('cardBtn').onclick=openCard;
 $('xcWrap').addEventListener('click',xcUnwrap);
@@ -2471,7 +2478,7 @@ $('howClose').onclick=()=>show('howto',false);
 // to the front it asks GitHub for the newest page; if that is a newer version it reloads, but only on the home page.
 (function autoUpdate(){ try {
   if (!/^https?:$/.test(location.protocol)) return;
-  const BUILD=46; let pending=0, busy=false, last=0;
+  const BUILD=47; let pending=0, busy=false, last=0;
   const tried=()=>{ try { return +sessionStorage.getItem('gb-upd-tried')||0; } catch(e){ return 0; } };
   async function check(){
     const now=Date.now(); if (busy || now-last<4000) return; busy=true; last=now;
