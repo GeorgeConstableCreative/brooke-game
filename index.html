@@ -524,7 +524,7 @@ html.compact #pad .lf{border-right-width:11px;left:8px;margin-top:-8px}
 html.compact #pad .rt{border-left-width:11px;right:8px;margin-top:-8px}
 html.compact #zapBtn{width:80px;height:80px;font-size:1rem;border-width:4px;opacity:.94}
 html.compact #controls{padding-bottom:calc(max(10px,env(safe-area-inset-bottom,0px)) + var(--nf,0px));padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))}
-html.compact #controls{display:none!important}
+#controls{display:none!important}   /* no on-screen pad or ZAP on any device: tap/click, keys or the trackpad instead */
 html.compact #hud:not(.bonus) #hint{position:fixed;left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));bottom:calc(max(10px,env(safe-area-inset-bottom,0px)) + var(--nf,0px));font-size:.86rem;padding:9px 13px;line-height:1.35;border-radius:18px}
 html.compact #hud:not(.bonus) #hint em{font-size:.92rem}
 html.compact #toasts{bottom:calc(var(--hintH,70px) + 8px);width:min(330px,calc(100vw - 24px));gap:6px}
@@ -597,7 +597,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
 <div id="skip" class="sticker chip" hidden>Tap to skip ▸</div>
 
 <section id="title" class="screen title-screen">
-  <span class="verlabel" aria-label="Version 42">v42</span>
+  <span class="verlabel" aria-label="Version 43">v43</span>
   <div class="card sticker peel title-card">
     <h1>Merry Christmas, Brooke!</h1>
     <nav class="tmenu" aria-label="Main menu">
@@ -2082,7 +2082,7 @@ function nextAdele(){ const i=G.li; if (G.playT>G.rareAt && !G.rareUsed[i]){ G.r
 function tip(id,title,body){ if (G.tips.has(id)) return; G.tips.add(id); toast('💡 '+title, body, null, 5); }
 const MOB=()=>document.documentElement.classList.contains('compact');
 const LEVEL_TIPS = {
-  0:[[.8,'move','How to move','Click anywhere to walk there, or swipe two fingers on the trackpad. Arrow keys and WASD work too.'],[6,'zap','Throw presents','Click or tap a shopper to throw them a present. Space and the ZAP button throw one straight ahead.'],[11.5,'arrow','Follow the pink arrow','It always points to your next goal. The Next box says what to do.']],
+  0:[[.8,'move','How to move','Click anywhere to walk there, or swipe two fingers on the trackpad. Arrow keys and WASD work too.'],[6,'zap','Throw presents','Click or tap a shopper to throw them a present. Space throws one straight ahead.'],[11.5,'arrow','Follow the pink arrow','It always points to your next goal. The Next box says what to do.']],
   1:[[1,'pass','Bonus quest','Adele has no ticket. Keep an eye out for a spare boarding pass 🎫.']],
   2:[[9,'last','Last stop!','Two gifts left, then meet Adele outside.']]
 };
@@ -2091,8 +2091,8 @@ function computeGoal(left){ const L=G.L;
   const ch=G.items.filter(i=>i.kind==='charger'&&!i.gone);
   if (G.battery<=1 && ch.length){ const c=nearest(ch); return { x:c.x, y:c.y-46, text:'Phone almost dead! Grab a green charger 🔌' }; }
   if (G.boss && !G.boss.dead){ const b=G.boss; const y= b.k==='santa' ? b.y-270*(.55+.45*b.hp/b.max) : b.k==='tsa' ? b.y-150 : b.y-120;
-    if (b.k==='carousel'){ const at=autoTarget(); const n=b.hp; return { x:at?at.x:b.x, y:at?at.y-58:y, text:`Hit the ${n} glowing gold suitcase${n>1?'s':''} on the carousel with presents. ${MOB()?'Tap a glowing one to throw':'Tap one, or press Space / ZAP to auto-aim'}. Dodge the bags it throws!` }; }
-    return { x:b.x, y, text: MOB() ? `Tap the ${BOSS_NAMES[b.k]} to throw presents (${b.hp} more hits)` : `Throw presents at the ${BOSS_NAMES[b.k]}: tap it, or press Space / ZAP to auto-aim (${b.hp} more hits)` }; }
+    if (b.k==='carousel'){ const at=autoTarget(); const n=b.hp; return { x:at?at.x:b.x, y:at?at.y-58:y, text:`Hit the ${n} glowing gold suitcase${n>1?'s':''} on the carousel with presents. ${MOB()?'Tap a glowing one to throw':'Click one, or press Space to auto-aim'}. Dodge the bags it throws!` }; }
+    return { x:b.x, y, text: MOB() ? `Tap the ${BOSS_NAMES[b.k]} to throw presents (${b.hp} more hits)` : `Throw presents at the ${BOSS_NAMES[b.k]}: click it, or press Space to auto-aim (${b.hp} more hits)` }; }
   if (left.length){ const stores=left.map(g=>{ const s=L.stores.find(s=>s.gift===g.id); return { x:s.x+112.5, y:262, s, g }; }); const t=nearest(stores);
     return { x:t.x, y:212, text:`Walk into ${t.s.name} ✨ to buy the ${t.g.name.toLowerCase()}` }; }
   if (G.cheers<L.goal){ const n=L.goal-G.cheers; return { x:0, y:0, none:true, text:`Click or tap ${n} more shopper${n>1?'s':''} to throw presents and fill the Cheer meter` }; }
@@ -2449,7 +2449,7 @@ $('howClose').onclick=()=>show('howto',false);
 // to the front it asks GitHub for the newest page; if that is a newer version it reloads, but only on the home page.
 (function autoUpdate(){ try {
   if (!/^https?:$/.test(location.protocol)) return;
-  const BUILD=42; let pending=0, busy=false, last=0;
+  const BUILD=43; let pending=0, busy=false, last=0;
   const tried=()=>{ try { return +sessionStorage.getItem('gb-upd-tried')||0; } catch(e){ return 0; } };
   async function check(){
     const now=Date.now(); if (busy || now-last<4000) return; busy=true; last=now;
