@@ -264,7 +264,27 @@ html.compact #hud{padding-top:calc(max(8px,env(safe-area-inset-top,0px)) + 52px)
 .savebtn:focus-visible{outline:3px dashed var(--ink);outline-offset:3px}
 .save-ic{display:grid;place-items:center;color:#2f7bf6}
 .save-ic svg{width:22px;height:22px}
-#saveSheet{z-index:41}
+/* ---------- Save to Home Screen (kit v1) ---------- */
+.save-ic svg{width:22px;height:22px;display:block}
+.hs-dim{position:fixed;inset:0;z-index:60;background:rgba(40,16,44,.62);display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;transition:opacity .25s ease}
+.hs-dim[hidden]{display:none}
+.hs-dim.show{opacity:1}
+.hs-sheet{position:relative;width:min(100%,460px);max-height:calc(100dvh - 36px);overflow-y:auto;background:#fff7fb;border:4px solid #fff;border-radius:26px;padding:28px 20px 20px;text-align:center;color:var(--ink);
+  box-shadow:0 0 0 3px var(--line),0 20px 50px rgba(40,10,40,.4);transform:scale(.85);transition:transform .45s cubic-bezier(.2,1.3,.35,1)}
+.hs-dim.show .hs-sheet{transform:scale(1)}
+.hs-x{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;border:0;background:var(--ink);color:#fff;font-size:20px;line-height:36px;cursor:pointer}
+.hs-top{display:block;line-height:0}
+.hs-sheet h2{margin:8px 0 4px;font-family:var(--display);font-size:1.5rem;color:var(--pink-deep)}
+.hs-sheet p.sub{margin:0 0 16px;font-size:.95rem;color:#7a5a70}
+.hs-step{display:flex;align-items:center;gap:12px;text-align:left;background:#fff;border-radius:16px;padding:12px 14px;margin-bottom:10px;box-shadow:0 2px 0 rgba(90,42,72,.08)}
+.hs-num{flex:none;width:30px;height:30px;border-radius:50%;background:#ffe3ef;color:var(--pink-deep);font-weight:900;display:grid;place-items:center}
+.hs-ic{flex:none;width:30px;height:30px;display:grid;place-items:center}.hs-ic svg,.hs-ic img{width:26px;height:26px;border-radius:7px}
+.hs-step b{display:block;font-size:1.02rem}
+.hs-step span{display:block;font-size:.86rem;color:#7a5a70;margin-top:2px}
+.hs-tip{font-size:.86rem;color:#a0506e;font-weight:700;margin:6px 0 4px}
+.hs-ok{margin-top:10px;padding:14px 44px;border:3px solid #fff;border-radius:16px;cursor:pointer;background:#2a9d8f;color:#fff;font-family:var(--display);font-size:1.1rem;box-shadow:0 0 0 2px var(--line),0 4px 0 rgba(0,0,0,.15)}
+.hs-x:focus-visible,.hs-ok:focus-visible{outline:3px dashed var(--ink);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){.hs-dim,.hs-sheet{transition:none}}
 /* ---------- "turn sideways" prompt (phones/tablets held upright) ---------- */
 #rotate{position:fixed;inset:0;z-index:60;display:grid;place-items:center;text-align:center;color:#fff;background:radial-gradient(120% 90% at 50% 10%,#5b347f,#1f1650 70%);
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-bottom,0px))}
@@ -482,7 +502,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
 <div id="skip" class="sticker chip" hidden>Tap to skip ▸</div>
 
 <section id="title" class="screen title-screen">
-  <span class="verlabel" aria-label="Version 32">v32</span>
+  <span class="verlabel" aria-label="Version 33">v33</span>
   <div class="card sticker peel title-card">
     <h1>Merry Christmas, Brooke!</h1>
     <nav class="tmenu" aria-label="Main menu">
@@ -492,7 +512,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
       <button class="tbtn t-card" id="cardBtn"><span class="tb-holly" aria-hidden="true"><svg viewBox="0 0 40 30"><path d="M4 18c6-2 9-8 9-14 3 4 8 5 12 4-2 4-1 9 2 12-5 0-10 2-13 6-1-4-5-7-10-8z" fill="#3fa66b" stroke="#24734a" stroke-width="1.6" stroke-linejoin="round"/><circle cx="25" cy="22" r="4.2" fill="#e94b5c" stroke="#fff" stroke-width="1.4"/><circle cx="31" cy="17" r="3.6" fill="#e94b5c" stroke="#fff" stroke-width="1.4"/></svg></span><span class="tb-tx">Christmas card</span></button>
     </nav>
     <div class="tfoot"><button class="tlink" id="howBtn">How to play</button></div>
-    <button class="savebtn" id="saveBtn" hidden><span class="save-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7.5 7.5 12 3l4.5 4.5"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg></span>Save the game to your Home Screen</button>
+    <button class="savebtn hs-btn" id="saveBtn" type="button" hidden><span class="save-ic"><svg viewBox="-12 -13 24 26" fill="none" stroke="#3478f6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M-4 -2H-8V11H8V-2H4"/><path d="M0 5V-11M-4.5 -6.5L0 -11L4.5 -6.5"/></svg></span><span class="hs-label">Save the game to your Home Screen</span></button>
   </div>
 </section>
 
@@ -520,16 +540,17 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
   </div>
 </section>
 
-<section id="saveSheet" class="screen dim" hidden role="dialog" aria-label="Save to your Home Screen">
-  <div class="card sticker peel save-card">
-    <p class="kicker">Play it like an app</p>
-    <h2>Save to your Home Screen</h2>
-    <p>Brooke's game gets its own Christmas icon and opens full screen, with no browser bars.</p>
-    <ol class="save-steps" id="saveSteps"></ol>
-    <p class="save-tip" id="saveTip" hidden></p>
-    <div class="row"><button class="btn" id="saveDone">Got it</button></div>
+<div class="hs-dim" id="saveSheet" role="dialog" aria-modal="true" aria-labelledby="hsTitle" hidden>
+  <div class="hs-sheet">
+    <button class="hs-x" id="hsX" type="button" aria-label="Close">×</button>
+    <span class="hs-top"><svg viewBox="-12 -13 24 26" fill="none" stroke="#3478f6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="40" height="40" aria-hidden="true"><path d="M-4 -2H-8V11H8V-2H4"/><path d="M0 5V-11M-4.5 -6.5L0 -11L4.5 -6.5"/></svg></span>
+    <h2 id="hsTitle">Save to your Home Screen</h2>
+    <p class="sub" id="hsSub">Then Brooke's game opens full screen, like an app.</p>
+    <div id="hsSteps"></div>
+    <p class="hs-tip" id="hsTip" hidden></p>
+    <button class="hs-ok" id="saveDone" type="button">Got it</button>
   </div>
-</section>
+</div>
 
 <section id="howto" class="screen dim" hidden>
   <div class="card sticker peel">
@@ -2207,23 +2228,47 @@ $('howClose').onclick=()=>show('howto',false);
 // Show the Add to Home Screen note only to iPhone/iPad visitors in Safari who aren't already playing from the Home Screen.
 // "Save the game to your Home Screen": native install prompt where the browser offers one, step-by-step help everywhere else.
 (function saveToHome(){ try {
-  const ua=navigator.userAgent, ios=/iPhone|iPad|iPod/.test(ua) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1), android=/Android/i.test(ua);
-  const standalone=navigator.standalone===true || matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches;
-  const framed=window.top!==window, inApp=/FBAN|FBAV|Instagram|Line\/|GSA\//.test(ua), iosOther=ios && /CriOS|FxiOS|EdgiOS/.test(ua);
-  if (standalone || framed) return;
-  let promptEv=null; addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); promptEv=e; });
-  addEventListener('appinstalled',()=>{ $('saveBtn').hidden=true; show('saveSheet',false); });
-  const btn=$('saveBtn'); btn.hidden=false; if (MOB()) btn.lastChild.textContent='Save to your Home Screen';
-  const SH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7.5 7.5 12 3l4.5 4.5"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>', PLUS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg>', DOTS='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="18.5" r="2" fill="currentColor"/></svg>', TREE='<span aria-hidden="true">🎄</span>';
-  function steps(list,tip){ $('saveSteps').innerHTML=list.map(([ic,t])=>'<li><span class="st-ic">'+ic+'</span><span>'+t+'</span></li>').join(''); const tp=$('saveTip'); tp.hidden=!tip; if (tip) tp.textContent=tip; }
-  btn.onclick=async ()=>{
-    if (promptEv){ try { promptEv.prompt(); const r=await promptEv.userChoice; promptEv=null; if (r && r.outcome==='accepted'){ btn.hidden=true; return; } } catch(e){} }
-    if (ios && (iosOther || inApp)) steps([[SH,'Tap <b>Share</b>, then <b>Open in Safari</b> (or copy the link into Safari).'],[SH,'In Safari, tap <b>Share</b> again.'],[PLUS,'Choose <b>Add to Home Screen</b>, then <b>Add</b>.'],[TREE,'Open the game from its new <b>Christmas icon</b>.']], 'iPhones can only save games to the Home Screen from Safari.');
-    else if (ios) steps([[SH,'Tap the <b>Share</b> button in Safari\'s toolbar.'],[PLUS,'Scroll down and tap <b>Add to Home Screen</b>. On newer iPhones it may be under <b>More</b>.'],['✓','Make sure <b>Open as Web App</b> is on if you see it, then tap <b>Add</b>.'],[TREE,'Open the game from its new <b>Christmas icon</b>.']], '');
-    else if (android) steps([[DOTS,'Tap the <b>⋮ menu</b> at the top right of Chrome.'],[PLUS,'Choose <b>Add to Home screen</b> or <b>Install app</b>.'],['✓','Tap <b>Install</b> or <b>Add</b> to confirm.'],[TREE,'Open the game from its new <b>Christmas icon</b>.']], '');
-    else steps([[DOTS,'In Chrome or Edge, open the <b>⋮ menu</b>, then <b>Cast, save and share → Install page as app</b>.'],[PLUS,'On a Mac in Safari, choose <b>File → Add to Dock</b>.'],[TREE,'The game then opens in its own window with the <b>Christmas icon</b>.']], 'Best of all on a phone: open the link on Brooke\'s iPhone and save it there.');
-    show('saveSheet'); setTimeout(()=>$('saveDone').focus(),60); };
-  $('saveDone').onclick=()=>show('saveSheet',false);
+  // Save to Home Screen kit v1 (from Hair By Gabie G), set up for Brooke's game
+  const SHORT_NAME="Brooke's game";
+  const ua=navigator.userAgent;
+  const IS_IOS=/iPhone|iPad|iPod/.test(ua) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+  const IS_STANDALONE=(()=>{ try { return matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone===true; } catch(e){ return false; } })();
+  const IN_FRAME=(()=>{ try { return window.top!==window.self; } catch(e){ return true; } })();
+  const btn=$('saveBtn'), dim=$('saveSheet');
+  // Android/Chrome hands us its own install prompt; keep it for when the button is tapped
+  let deferred=null;
+  addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferred=e; });
+  addEventListener('appinstalled',()=>{ btn.hidden=true; close(); });
+  // already opened from the Home Screen? then there's nothing to save
+  if (!IS_STANDALONE) btn.hidden=false;
+  if (MOB()) btn.querySelector('.hs-label').textContent='Save to your Home Screen';
+  const ic={
+    share:'<svg viewBox="-12 -13 24 26" fill="none" stroke="#3478f6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M-4 -2H-8V11H8V-2H4"/><path d="M0 5V-11M-4.5 -6.5L0 -11L4.5 -6.5"/></svg>',
+    plus:'<svg viewBox="-12 -12 24 24" fill="none" stroke="#1f2a44" stroke-width="2.3" stroke-linecap="round"><rect x="-10" y="-10" width="20" height="20" rx="5"/><path d="M-5 0H5M0 -5V5"/></svg>',
+    dots:'<svg viewBox="-12 -12 24 24" fill="#1f2a44"><circle cy="-6" r="2.4"/><circle r="2.4"/><circle cy="6" r="2.4"/></svg>',
+    app:'<img src="icon-xmas-180.png" alt="" onerror="this.outerHTML=\'<svg viewBox=&quot;-13 -13 26 26&quot;><circle r=&quot;12&quot; fill=&quot;#e8508f&quot;/><text y=&quot;5.5&quot; text-anchor=&quot;middle&quot; font-size=&quot;15&quot; font-weight=&quot;700&quot; fill=&quot;#fff&quot;>B</text></svg>\'">'
+  };
+  const steps=IS_IOS ? [
+    [ic.share,'Tap the Share button','At the bottom of Safari (or the top on iPad).'],
+    [ic.plus,'Choose "Add to Home Screen"',"Scroll down the list if you don't see it."],
+    [ic.app,'Tap "Add"','The game appears on your Home Screen with its Christmas icon.']
+  ] : [
+    [ic.dots,'Open the browser menu','The three-dot button in Chrome or your browser.'],
+    [ic.plus,'Choose "Add to Home screen"','Some browsers call it "Install app".'],
+    [ic.app,'Tap "Add"','The game appears with your other apps.']
+  ];
+  $('hsSub').textContent='Then '+SHORT_NAME+' opens full screen, like an app.';
+  $('hsSteps').innerHTML=steps.map((st,i)=>'<div class="hs-step"><div class="hs-num">'+(i+1)+'</div><div class="hs-ic">'+st[0]+'</div><div><b>'+st[1]+'</b><span>'+st[2]+'</span></div></div>').join('');
+  const tip=IN_FRAME ? 'Tip: open the game in its own tab (not inside another page) before saving it.' : IS_IOS ? '' : 'On iPhone, open this link in Safari to save it.';
+  if (tip){ $('hsTip').textContent=tip; $('hsTip').hidden=false; }
+  function open(){ dim.hidden=false; requestAnimationFrame(()=>requestAnimationFrame(()=>dim.classList.add('show'))); setTimeout(()=>$('saveDone').focus(),80); }
+  function close(){ if (dim.hidden) return; dim.classList.remove('show'); setTimeout(()=>{ dim.hidden=true; },250); btn.focus(); }
+  btn.addEventListener('click',()=>{ if (deferred){ deferred.prompt(); deferred.userChoice.finally(()=>{ deferred=null; }); } else open(); });
+  $('hsX').addEventListener('click',close); $('saveDone').addEventListener('click',close);
+  dim.addEventListener('click',e=>{ if (e.target===dim) close(); });
+  addEventListener('keydown',e=>{ if (e.key==='Escape' && !dim.hidden){ e.stopPropagation(); close(); } },true);
+  // let the game hide/show the button: window.homeScreenButton(false) hides it, (true) shows it again
+  window.homeScreenButton=on=>{ btn.hidden=IS_STANDALONE || !on; };
 } catch(e){} })();
 (function callAv(){ const c=$('callAvatar').getContext('2d'); c.fillStyle='#efe7ff'; c.fillRect(0,0,220,220); try { Art.adele(c,110,360,{s:2.9,t:0}); } catch(e){} })();
 (function avatar(){ const c=$('avatar').getContext('2d'); c.fillStyle='#efe7ff'; c.fillRect(0,0,92,92); try { Art.adele(c,46,150,{s:1.25,t:0}); } catch(e){} })();
