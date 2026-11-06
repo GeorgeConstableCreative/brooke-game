@@ -111,6 +111,10 @@ html.compact #hud{padding-top:calc(max(8px,env(safe-area-inset-top,0px)) + 52px)
 @media (max-width:360px){#menu .menu-grid{grid-template-columns:1fr}}
 #menu .mitem{grid-template-columns:auto 1fr auto;gap:12px;min-height:62px;padding:10px 14px;border-radius:22px;border:0;background:#fff7f0;box-shadow:0 4px 0 rgba(0,0,0,.18);font-family:var(--display);font-weight:400;font-size:1.02rem}
 /* offset buttons: each row steps left and right with a slight tilt, like the home page */
+#hudBackT,#hudBackB{position:fixed;left:0;right:0;z-index:9;pointer-events:none;display:none}
+#hudBackT{top:0;height:calc(var(--bandT,0px) + 14px);background:linear-gradient(180deg,rgba(255,244,249,.97) 0%,rgba(255,244,249,.93) calc(100% - 22px),rgba(255,244,249,0) 100%);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+#hudBackB{bottom:0;height:calc(var(--bandB,0px) + 14px);background:linear-gradient(0deg,rgba(255,244,249,.97) 0%,rgba(255,244,249,.93) calc(100% - 22px),rgba(255,244,249,0) 100%)}
+html.hudbacks #hudBackT,html.hudbacks #hudBackB{display:block}
 #pauseOv{position:fixed;inset:0;z-index:39;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(40,16,44,.42);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
 #pauseOv[hidden]{display:none}
 .po-card{width:min(100%,360px);padding:22px 22px 20px;border-radius:26px;background:#fff7fb;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;animation:poIn .38s cubic-bezier(.2,1.3,.4,1) both}
@@ -144,7 +148,6 @@ html.compact #hud{padding-top:calc(max(8px,env(safe-area-inset-top,0px)) + 52px)
 .mtick{width:24px;height:24px;color:#3ba57a;opacity:0}
 .mitem.done .mtick{opacity:1}
 .menu-foot{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-top:6px}
-#scrollBtn{font-size:.92rem}
 #menu{z-index:42}
 .menu-sec{margin:6px 0 0!important;font-weight:900!important;text-transform:uppercase;letter-spacing:.1em;font-size:.74rem;color:var(--pink-deep)}
 .menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
@@ -571,6 +574,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
   <button class="iconbtn navbtn" id="homeBtn" aria-label="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2V20a1 1 0 0 1-1 1h-5v-6h-5v6h-5a1 1 0 0 1-1-1z" fill="currentColor"/></svg></button>
   <button class="iconbtn navbtn" id="pauseBtn" aria-label="Pause and jump to any section" aria-haspopup="dialog" aria-expanded="false"></button>
 </div>
+<div id="hudBackT" aria-hidden="true"></div><div id="hudBackB" aria-hidden="true"></div>
 <div id="pauseOv" hidden role="dialog" aria-modal="true" aria-labelledby="poTitle">
   <div class="po-card sticker">
     <span class="po-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1.6"/><rect x="14" y="5" width="4" height="14" rx="1.6"/></svg></span>
@@ -592,7 +596,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
 <div id="skip" class="sticker chip" hidden>Tap to skip ▸</div>
 
 <section id="title" class="screen title-screen">
-  <span class="verlabel" aria-label="Version 39">v39</span>
+  <span class="verlabel" aria-label="Version 40">v40</span>
   <div class="card sticker peel title-card">
     <h1>Merry Christmas, Brooke!</h1>
     <nav class="tmenu" aria-label="Main menu">
@@ -710,7 +714,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
     <div class="menu-grid story-part" id="menuStory"></div>
     <p class="menu-sec arc-part">Christmas arcade</p>
     <div class="menu-grid arc-part" id="menuArcade"></div>
-    <div class="menu-foot"><button class="btn alt" id="scrollBtn" type="button">Trackpad: follows fingers ⇄</button><button class="btn" id="menuClose">Resume</button></div>
+    <div class="menu-foot"><button class="btn" id="menuClose">Resume</button></div>
   </div>
 </section>
 
@@ -1888,7 +1892,7 @@ cv.addEventListener('pointermove',e=>{ if (G.mode==='play' && tapHold && e.point
 
 /* ---------- trackpad / scroll-wheel control ---------- */
 // Two-finger swipes on a laptop trackpad (or a mouse wheel) steer Brooke, the robo-taxi and the arcade games.
-let scrollFlip=false; try { scrollFlip=localStorage.getItem('gb-scrollflip')==='1'; } catch(e){}
+const scrollFlip=false;   // two-finger swipes always follow your fingers
 const scrollPad={x:0,y:0,t:0}, wheelG={x:0,y:0,last:0,dir:null};
 function scrollStick(){ const age=(performance.now()-scrollPad.t)/1000, f=age<.07?1:Math.exp(-(age-.07)*11); return { x:Math.abs(scrollPad.x*f)<.04?0:scrollPad.x*f, y:Math.abs(scrollPad.y*f)<.04?0:scrollPad.y*f }; }
 function wheelVec(e){ let dx=e.deltaX, dy=e.deltaY; const u=e.deltaMode===1?16:e.deltaMode===2?400:1; dx*=u; dy*=u;
@@ -1922,8 +1926,7 @@ const ICON_OFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strok
 function paintMute(){ const b=$('muteBtn'); b.innerHTML=muted?ICON_OFF:ICON_ON; b.classList.toggle('off',muted); }
 function toggleMute(){ muted=!muted; Snd.setMuted(muted); paintMute(); $('muteBtn').setAttribute('aria-label',muted?'Unmute sound':'Mute sound'); try{ localStorage.setItem('gb-muted',muted?'1':'0'); }catch(e){} }
 $('muteBtn').addEventListener('click',e=>{ toggleMute(); e.currentTarget.blur(); });
-$('scrollBtn').addEventListener('click',()=>{ scrollFlip=!scrollFlip; try{ localStorage.setItem('gb-scrollflip',scrollFlip?'1':'0'); }catch(e){} paintScrollBtn(); });
-if (TOUCH_ONLY) $('scrollBtn').hidden=true; paintScrollBtn();
+
 paintMute();
 function closeList(){ clearTimeout(peekList.t); $('list').classList.remove('open'); $('listToggle').setAttribute('aria-expanded','false'); }
 $('listToggle').addEventListener('click',e=>{ const l=$('list'); clearTimeout(peekList.t); const o=l.classList.toggle('open'); $('listToggle').setAttribute('aria-expanded',o); e.currentTarget.blur(); });
@@ -2090,7 +2093,7 @@ function computeGoal(left){ const L=G.L;
     if (b.k==='carousel'){ const at=autoTarget(); const n=b.hp; return { x:at?at.x:b.x, y:at?at.y-58:y, text:`Hit the ${n} glowing gold suitcase${n>1?'s':''} on the carousel with presents. ${MOB()?'Tap a glowing one to throw':'Tap one, or press Space / ZAP to auto-aim'}. Dodge the bags it throws!` }; }
     return { x:b.x, y, text: MOB() ? `Tap the ${BOSS_NAMES[b.k]} to throw presents (${b.hp} more hits)` : `Throw presents at the ${BOSS_NAMES[b.k]}: tap it, or press Space / ZAP to auto-aim (${b.hp} more hits)` }; }
   if (left.length){ const stores=left.map(g=>{ const s=L.stores.find(s=>s.gift===g.id); return { x:s.x+112.5, y:262, s, g }; }); const t=nearest(stores);
-    return { x:t.x, y:110, text:`Walk into ${t.s.name} ✨ to buy the ${t.g.name.toLowerCase()}` }; }
+    return { x:t.x, y:212, text:`Walk into ${t.s.name} ✨ to buy the ${t.g.name.toLowerCase()}` }; }
   if (G.cheers<L.goal){ const n=L.goal-G.cheers; return { x:0, y:0, none:true, text:`Click or tap ${n} more shopper${n>1?'s':''} to throw presents and fill the Cheer meter` }; }
   return { x:L.exit.x+L.exit.w/2, y:L.exit.y+20, text:`All done! Head to the exit: ${L.exitLabel} →` }; }
 
@@ -2191,13 +2194,17 @@ function bandCalc(){ if (!document.documentElement.classList.contains('compact')
   const hr=$('hud').getBoundingClientRect(), cr=document.querySelector('.corner-row').getBoundingClientRect();
   let b=CH; const hb=$('hint'); if (!$('hud').hidden && !$('hud').classList.contains('bonus')){ const r=hb.getBoundingClientRect(); if (r.height){ b=r.top; document.documentElement.style.setProperty('--hintH',(CH-r.top)+'px'); } }
   const tb=$('topbar').getBoundingClientRect(), nl=$('navL').getBoundingClientRect();
-  return { t:Math.max(hr.bottom, cr.bottom, tb.bottom, nl.bottom)+6, b:b-6, mob:true }; }
+  const bt=Math.max(hr.bottom, cr.bottom, tb.bottom, nl.bottom)+6, de=document.documentElement.style;
+  de.setProperty('--bandT',bt+'px'); de.setProperty('--bandB',Math.max(0,innerHeight-(b-6))+'px');
+  return { t:bt, b:b-6, mob:true }; }
 function updateCam(dt){ const vw=CW/G.zoom, vh=CH/G.zoom, L=G.L, p=G.player;
   G.bandT=(G.bandT||0)-dt; if (G.bandT<=0 || !G.band){ G.band=bandCalc(); G.bandT=.3; }
   const bd=G.band;
   const tx = vw>=L.w ? (L.w-vw)/2 : clamp(p.x-vw/2,0,L.w-vw);
   let ty;
-  if (bd.mob){ const lo=-bd.t/G.zoom, hi=L.h-bd.b/G.zoom, mid=(bd.t+bd.b)/2/G.zoom; ty = hi<lo ? (lo+hi)/2 : clamp(p.y-50-mid, lo, hi); }
+  if (bd.mob){ const lo=-bd.t/G.zoom, hi=L.h-bd.b/G.zoom, mid=(bd.t+bd.b)/2/G.zoom; ty = hi<lo ? (lo+hi)/2 : clamp(p.y-50-mid, lo, hi);
+    // near the shops, ease the view up so the signs and gift markers sit just below the top bar (Brooke stays in view)
+    if (hi>=lo && p.y<520){ const want=Math.max(lo, 64-bd.t/G.zoom), keepP=p.y+24-bd.b/G.zoom; ty=clamp(Math.min(ty,Math.max(want,keepP)), lo, hi); } }
   else ty = vh>=L.h ? (L.h-vh)/2 : clamp(p.y-60-vh/2,0,L.h-vh);
   const k=1-Math.pow(.0005,dt); G.cam.x+=(tx-G.cam.x)*k; G.cam.y+=(ty-G.cam.y)*k; }
 let hudCache={};
@@ -2438,7 +2445,7 @@ $('howClose').onclick=()=>show('howto',false);
 // to the front it asks GitHub for the newest page; if that is a newer version it reloads, but only on the home page.
 (function autoUpdate(){ try {
   if (!/^https?:$/.test(location.protocol)) return;
-  const BUILD=39; let pending=0, busy=false, last=0;
+  const BUILD=40; let pending=0, busy=false, last=0;
   const tried=()=>{ try { return +sessionStorage.getItem('gb-upd-tried')||0; } catch(e){ return 0; } };
   async function check(){
     const now=Date.now(); if (busy || now-last<4000) return; busy=true; last=now;
@@ -3126,6 +3133,7 @@ let last=performance.now();
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000); last=now; if (!(typeof PAUSE!=='undefined' && PAUSE.on)) G.t+=dt;   // paused: even the snow and twinkles hold still
   if (document.hidden){ requestAnimationFrame(frame); return; }
+  { const want=G.mode==='play' && document.documentElement.classList.contains('compact') && !$('hud').hidden; if (document.documentElement.classList.contains('hudbacks')!==want) document.documentElement.classList.toggle('hudbacks',want); }
   const ud = (MENU.open || ROT.open || PAUSE.on) ? 0 : dt;
   if (ud>0){
     if (G.mode==='play') updatePlay(ud);
