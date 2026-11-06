@@ -596,7 +596,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
 <div id="skip" class="sticker chip" hidden>Tap to skip ▸</div>
 
 <section id="title" class="screen title-screen">
-  <span class="verlabel" aria-label="Version 40">v40</span>
+  <span class="verlabel" aria-label="Version 41">v41</span>
   <div class="card sticker peel title-card">
     <h1>Merry Christmas, Brooke!</h1>
     <nav class="tmenu" aria-label="Main menu">
@@ -2445,7 +2445,7 @@ $('howClose').onclick=()=>show('howto',false);
 // to the front it asks GitHub for the newest page; if that is a newer version it reloads, but only on the home page.
 (function autoUpdate(){ try {
   if (!/^https?:$/.test(location.protocol)) return;
-  const BUILD=40; let pending=0, busy=false, last=0;
+  const BUILD=41; let pending=0, busy=false, last=0;
   const tried=()=>{ try { return +sessionStorage.getItem('gb-upd-tried')||0; } catch(e){ return 0; } };
   async function check(){
     const now=Date.now(); if (busy || now-last<4000) return; busy=true; last=now;
@@ -2840,7 +2840,21 @@ const MINIS = (() => {
       gift:[{x:592,y:470},{x:666,y:484},{x:742,y:470}], stock:[{x:372,y:304},{x:528,y:304}] };
     const KIND=id=> id==='star'?'star' : (id==='orn'||id==='cane'||id==='bow'||id==='lights')?'tree' : id==='gift'?'gift' : id==='stock'?'stock' : null;
     const STEPS=[['star','Put the star on top of the tree','⭐',['star']],['tree','Hang 5 decorations on the tree','🎄',['orn','cane','bow','lights']],['gift','Put 3 presents under the tree','🎁',['gift']],['stock','Hang 2 stockings on the mantel','🧦',['stock']]];
-    const TIME=120;
+    const TIME=120, BONUS=30;
+    // surfaces things can stand on: the mantel top, the window sill and the floor. Standing items rest their base on one.
+    const SURF={ mantel:{x0:322,x1:578,y:246}, sill:{x0:64,x1:246,y:262}, floorTop:458, floorBot:626 };
+    const STAND={ candle:.42, globe:.38, cookies:.28, ginger:.46 };          // how far each item's base sits below its centre
+    function settle(id,x,y,ignore){ const sz=ITEMS[id].size;
+      if (STAND[id]!=null){ const off=sz*STAND[id]; let surf, ny, x0, x1;
+        if (x>SURF.mantel.x0+10 && x<SURF.mantel.x1-10 && y+off<350){ surf='mantel'; ny=SURF.mantel.y-off; x0=SURF.mantel.x0+sz*.4; x1=SURF.mantel.x1-sz*.4; }
+        else if (x>SURF.sill.x0+10 && x<SURF.sill.x1-10 && y+off<330){ surf='sill'; ny=SURF.sill.y-off; x0=SURF.sill.x0+sz*.4; x1=SURF.sill.x1-sz*.4; }
+        else { surf='floor'; ny=clamp(y+off,SURF.floorTop,SURF.floorBot)-off; x0=sz*.5; x1=W0-sz*.5; }
+        // no stacking: slide along the surface to the nearest free spot
+        const clash=xx=>S.items.some(i=>i!==ignore && STAND[i.id]!=null && i.surf===surf && Math.abs(i.x-xx)<(ITEMS[i.id].size+sz)*.42 && Math.abs(i.y-ny)<40);
+        let nx=clamp(x,x0,x1); if (clash(nx)){ for (let d=8; d<W0; d+=8){ if (nx+d<=x1 && !clash(nx+d)){ nx+=d; break; } if (nx-d>=x0 && !clash(nx-d)){ nx-=d; break; } } }
+        return { x:nx, y:ny, surf }; }
+      if (id==='wreath') return { x:clamp(x,sz*.5,W0-sz*.5), y:clamp(y,sz*.5,430-sz*.5), surf:'wall' };
+      return { x:clamp(x,10,W0-10), y:clamp(y,10,H0-10), surf:'free' }; }
     const toWorld=(x,y)=>({x:(x-view.ox)/view.k,y:(y-view.oy)/view.k});
     function drawItem(c,id,x,y,v,sc=1){ const s=ITEMS[id].size*sc; c.save(); c.translate(x,y);
       if (id==='star'){ stick(c,()=>starPath(c,0,0,s*.5,s*.22),'#ffcf5c',4,1.6); }
@@ -2869,41 +2883,62 @@ const MINIS = (() => {
     function stars(){ const left=S.time; return left>=60?3:left>=30?2:1; }
     function wake(){ S.over=true; Snd.sfx.beep(); miniCard('Brooke woke up!','So close!',`The cottage wasn't quite ready. Score ${S.score}. Tip: the glowing outlines show where each decoration goes.`,[['Try again',()=>{ MINIS.cozy.stop(); MINIS.cozy.start(true); }],['Back to arcade',exitToArcade,true]]); }
     function info(){ const g=goals(), st=stepNow(g), sec=Math.max(0,Math.ceil(S.time)), clock=`${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
-      miniInfo(`${st<0?'All done!':`Step ${st+1} of 4: ${STEPS[st][2]} ${STEPS[st][1]}`} · ${S.score} pts · 😴 ${clock}`);
-      document.querySelectorAll('#cozyTray .titem').forEach(b=>b.classList.toggle('need', st>=0 && STEPS[st][3].includes(b.dataset.id)));
-      if (g.all && !S.done){ const n=stars(); S.score+=Math.round(S.time)*10; S.stars=n; }
-      if (g.all && !S.done){ markDone('cozy'); S.done=true; S.doneT=0; confettiRain(); Snd.sfx.fanfare(); Snd.swell(8); setTimeout(()=>{ if (S) miniCard('Cottage complete '+'⭐'.repeat(S.stars||1)+'☆'.repeat(3-(S.stars||1)),'So cozy!',`You finished with ${Math.ceil(S.time)} seconds to spare. Score ${S.score}. Brooke wakes up to a perfect Christmas. Keep decorating as much as you like.`,[['Keep decorating',()=>{}],['Back to arcade',exitToArcade,true]]); },1300); } }
+      if (S.phase==='bonus'||S.phase==='end'){ const b=Math.max(0,Math.ceil(S.bonusT)); miniInfo(S.phase==='end'?`Finished · ${S.score} pts`:`🎉 Bonus round · ${S.score} pts · ⏱ 0:${String(b).padStart(2,'0')}${S.combo>1?` · combo x${S.combo}`:''}`); }
+      else miniInfo(`${st<0?'All done!':`Step ${st+1} of 4: ${STEPS[st][2]} ${STEPS[st][1]}`} · ${S.score} pts · 😴 ${clock}`);
+      document.querySelectorAll('#cozyTray .titem').forEach(b=>b.classList.toggle('need', S.phase==='bonus' ? !S.seen[b.dataset.id] : st>=0 && STEPS[st][3].includes(b.dataset.id)));
+      if (g.all && !S.done){ markDone('cozy'); S.done=true; S.doneT=0; S.pts.time=Math.ceil(S.time)*10; S.score+=S.pts.time;
+        S.phase='bonus'; S.bonusT=BONUS; S.combo=0; S.lastPlace=-9; S.banner={t:0,txt:'Bonus round!',sub:`Time bonus +${S.pts.time} · 30 seconds of extra decorating!`};
+        confettiRain(); Snd.sfx.fanfare(); Snd.swell(8); info(); } }
+    function finish(){ S.over=true; S.phase='end'; let best=0; try { best=+localStorage.getItem('gb-cozy-best')||0; } catch(e){}
+      const n=S.score>=3500?3:S.score>=2400?2:1, newBest=S.score>best; if (newBest) try { localStorage.setItem('gb-cozy-best',S.score); } catch(e){}
+      Snd.sfx.fanfare(); confettiRain(); info();
+      setTimeout(()=>{ if (S) miniCard('Cottage complete '+'⭐'.repeat(n)+'☆'.repeat(3-n), newBest?'New best score!':'So cozy!',
+        `Decorating ${S.pts.decor} · Time bonus ${S.pts.time} · Bonus round ${S.pts.bonus}. Total ${S.score} points${newBest?'':` (best ${best})`}. Brooke wakes up to a perfect Christmas.`,
+        [['Play again',()=>{ MINIS.cozy.stop(); MINIS.cozy.start(true); }],['Back to arcade',exitToArcade,true]]); },900); }
     function buildTray(){ const tray=$('cozyTray'); tray.innerHTML='';
       ORDER.forEach(id=>{ const b=document.createElement('button'); b.className='titem'; b.dataset.id=id; b.setAttribute('aria-label',ITEMS[id].label); const cv2=document.createElement('canvas'); cv2.width=104; cv2.height=104; b.appendChild(cv2);
         const x2=cv2.getContext('2d'); x2.scale(104/ (ITEMS[id].size*1.6), 104/(ITEMS[id].size*1.6)); drawItem(x2,id,ITEMS[id].size*.8,ITEMS[id].size*.8,0);
-        b.addEventListener('pointerdown',e=>{ e.preventDefault(); if (!S||S.ready||S.over) return; const v=S.counts[id]=(S.counts[id]||0)+1; S.drag={id,v,x:e.clientX,y:e.clientY,fresh:true,id0:e.pointerId}; Snd.sfx.door(); });
+        b.addEventListener('pointerdown',e=>{ e.preventDefault(); if (!S||S.ready||S.over) return; if (S.items.length>=48){ S.pops.push({x:W0/2,y:120,t:0,txt:'The cottage is full!'}); return; } const v=S.counts[id]=(S.counts[id]||0)+1; S.drag={id,v,x:e.clientX,y:e.clientY,fresh:true,id0:e.pointerId}; Snd.sfx.door(); });
         tray.appendChild(b); }); }
     return {
       title:'Cozy Cottage', song:'wish',
-      start(again){ S={items:[],counts:{},drag:null,done:false,doneT:0,hearts:[],zz:0,time:TIME,score:0,pops:[],parts:[],ready:!again,over:false}; show('cozyTray'); buildTray(); miniHint(''); fit(); info();
-        if (!again) miniCard('Cozy Cottage','Decorate before Brooke wakes up!',`Brooke has dozed off by the fire. Drag decorations from the tray into the glowing outlines: ⭐ the star on top, 🎄 5 decorations on the tree, 🎁 3 presents underneath and 🧦 2 stockings on the mantel. Finish within 2 minutes. The faster you are, the more stars you get.`,[['Start decorating',()=>{ S.ready=false; Snd.sfx.door(); }],['Back to arcade',exitToArcade,true]]); },
+      start(again){ S={items:[],counts:{},drag:null,done:false,doneT:0,hearts:[],zz:0,time:TIME,score:0,pops:[],parts:[],ready:!again,over:false,phase:'build',bonusT:0,combo:0,lastPlace:-9,seen:{},pts:{decor:0,time:0,bonus:0},banner:null,clock:0}; show('cozyTray'); buildTray(); miniHint(''); fit(); info();
+        if (!again) miniCard('Cozy Cottage','Decorate before Brooke wakes up!',`Brooke has dozed off by the fire. Drag decorations from the tray into the glowing outlines: ⭐ the star on top, 🎄 5 decorations on the tree, 🎁 3 presents underneath and 🧦 2 stockings on the mantel. Finish within 2 minutes for a time bonus, then a 30-second bonus round: add more decorations to the mantel, window and floor for extra points. Quick placements build a combo!`,[['Start decorating',()=>{ S.ready=false; Snd.sfx.door(); }],['Back to arcade',exitToArcade,true]]); },
       _st:()=>S, _spots:SPOTS, _view:()=>view,
       stop(){ S=null; show('cozyTray',false); $('cozyTray').innerHTML=''; },
       down(x,y){ if (!S) return; const w=toWorld(x,y);
-        if (S.ready||S.over) return; for (let i=S.items.length-1;i>=0;i--){ const it=S.items[i]; if (Math.hypot(it.x-w.x,it.y-w.y)<ITEMS[it.id].size*.55){ S.items.splice(i,1); S.drag={id:it.id,v:it.v,x,y,fresh:false,scored:it.scored}; info(); return; } }
+        if (S.ready||S.over) return; for (let i=S.items.length-1;i>=0;i--){ const it=S.items[i]; if (Math.hypot(it.x-w.x,it.y-w.y)<ITEMS[it.id].size*.55){ if (S.phase==='end') return; S.items.splice(i,1); S.drag={id:it.id,v:it.v,x,y,fresh:false,scored:it.scored}; info(); return; } }
         if (Math.hypot(w.x-400,w.y-520)<70){ S.hearts.push({x:400+Math.random()*30-15,y:470,t:0}); Snd.sfx.catch(); } },
       move(x,y){ if (S&&S.drag){ S.drag.x=x; S.drag.y=y; } },
       up(x,y,e,cancel){ if (!S||!S.drag) return; const d=S.drag; S.drag=null; if (cancel) return;
         if (y>=view.trayTop || x>=view.trayLeft || y<0){ if (!d.fresh) Snd.sfx.pop(); info(); return; }
-        const w=toWorld(x,y), kd=KIND(d.id); let nx=clamp(w.x,10,W0-10), ny=clamp(w.y,10,H0-10), snapped=false;
+        if (S.over) return;
+        const w=toWorld(x,y), kd=KIND(d.id); let nx=clamp(w.x,10,W0-10), ny=clamp(w.y,10,H0-10), snapped=false, surf='free';
         if (kd){ const free=SPOTS[kd].filter(sp=>!S.items.some(i=>KIND(i.id)===kd && Math.hypot(i.x-sp.x,i.y-sp.y)<6));
           let best=null, bd=kd==='tree'?70:95; for (const sp of free){ const dd=Math.hypot(sp.x-nx,sp.y-ny); if (dd<bd){ bd=dd; best=sp; } }
-          if (best){ nx=best.x; ny=best.y; snapped=true; } }
-        S.items.push({id:d.id,v:d.v,x:nx,y:ny,pop:0});
-        if (snapped && !d.scored){ S.score+=100; S.pops.push({x:nx,y:ny-30,t:0,txt:pick(['Perfect!','+100','So cozy!','Lovely!'])}); for (let i=0;i<14;i++){ const a=Math.random()*7; S.parts.push({x:nx,y:ny,vx:Math.cos(a)*160,vy:Math.sin(a)*160-60,t:0,col:pick(['#ffcf5c','#ff7eb6','#fff'])}); } Snd.sfx.chaching(); }
-        else if (!snapped && kd && !S.done){ S.pops.push({x:nx,y:ny-30,t:0,txt:'Try a glowing outline'}); Snd.sfx.catch(); }
-        else if (!kd && !d.scored && (S.bonus||0)<5){ S.bonus=(S.bonus||0)+1; S.score+=20; S.pops.push({x:nx,y:ny-30,t:0,txt:'+20 cozy bonus'}); Snd.sfx.catch(); }
+          if (best){ nx=best.x; ny=best.y; snapped=true; surf='spot'; } }
+        if (!snapped){ const st=settle(d.id,nx,ny,null); nx=st.x; ny=st.y; surf=st.surf; }
+        const it={id:d.id,v:d.v,x:nx,y:ny,fy:Math.min(ny,clamp(w.y,10,H0-10)),vy:0,pop:0,surf}; S.items.push(it);
+        const pop=(txt,big)=>S.pops.push({x:nx,y:ny-34,t:0,txt,big});
+        const sparkle=n=>{ for (let i=0;i<n;i++){ const a=Math.random()*7; S.parts.push({x:nx,y:ny,vx:Math.cos(a)*160,vy:Math.sin(a)*160-60,t:0,col:pick(['#ffcf5c','#ff7eb6','#fff'])}); } };
+        if (S.phase==='bonus' && d.fresh){
+          // bonus round: every new decoration scores; the first of each kind scores extra; quick placements chain a combo
+          const now=S.clock; S.combo = now-S.lastPlace<2.5 ? Math.min(5,S.combo+1) : 1; S.lastPlace=now;
+          const isNew=!S.seen[d.id]; S.seen[d.id]=true; const pts=(50+(isNew?100:0))*S.combo; S.score+=pts; S.pts.bonus+=pts;
+          pop(`+${pts}${S.combo>1?` x${S.combo}`:''}${isNew?' New!':''}`,S.combo>1); sparkle(10+S.combo*3); Snd.sfx.chaching(); }
+        else if (snapped && !d.scored){ S.score+=100; S.pts.decor+=100; pop(pick(['Perfect! +100','Lovely! +100','So cozy! +100'])); sparkle(14); Snd.sfx.chaching(); }
+        else if (!snapped && kd && !S.done){ pop('Try a glowing outline'); Snd.sfx.catch(); }
+        else if (!kd && !d.scored && (S.bonus||0)<5){ S.bonus=(S.bonus||0)+1; S.score+=20; S.pts.decor+=20; pop('+20 cozy'); Snd.sfx.catch(); }
         else Snd.sfx.catch();
-        S.items[S.items.length-1].scored = d.scored || snapped || !kd; info(); },
+        it.scored = d.scored || snapped || !kd || S.phase==='bonus'; info(); },
       update(dt){ if (!S) return; fit(); for (const h of S.hearts) h.t+=dt; S.hearts=S.hearts.filter(h=>h.t<1.4); S.zz+=dt; if (S.done) S.doneT+=dt;
         for (const pp of S.pops) pp.t+=dt; S.pops=S.pops.filter(pp=>pp.t<1.1);
         for (const q of S.parts){ q.t+=dt; q.x+=q.vx*dt; q.y+=q.vy*dt; q.vy+=420*dt; } S.parts=S.parts.filter(q=>q.t<.8);
-        for (const it of S.items) if (it.pop!=null && it.pop<1) it.pop=Math.min(1,it.pop+dt*4);
+        for (const it of S.items){ if (it.pop!=null && it.pop<1) it.pop=Math.min(1,it.pop+dt*4);
+          if (it.fy!=null && it.fy<it.y){ it.vy+=2600*dt; it.fy=Math.min(it.y,it.fy+it.vy*dt); if (it.fy>=it.y){ it.vy=0; it.pop=0; Snd.sfx.catch(); } } }
+        S.clock+=dt; if (S.banner){ S.banner.t+=dt; if (S.banner.t>2.6) S.banner=null; }
+        if (S.phase==='bonus' && !S.over){ const before=Math.ceil(S.bonusT); S.bonusT-=dt; if (S.clock-S.lastPlace>2.5 && S.combo>1){ S.combo=0; info(); }
+          if (Math.ceil(S.bonusT)!==before){ info(); if (S.bonusT<=5) Snd.sfx.beep(); } if (S.bonusT<=0){ S.bonusT=0; finish(); } }
         if (!S.ready && !S.done && !S.over){ const before=Math.ceil(S.time); S.time-=dt; if (Math.ceil(S.time)!==before) info(); if (S.time<=10 && Math.ceil(S.time)!==before) Snd.sfx.beep(); if (S.time<=0){ S.time=0; info(); wake(); } } },
       render(c){ if (!S) return; const t=G.t, {k,ox,oy}=view;
         c.fillStyle='#3a2340'; c.fillRect(0,0,CW,CH);
@@ -2947,9 +2982,18 @@ const MINIS = (() => {
           if (next && !S.drag && !S.ready){ const sp=SPOTS[next].find(sp=>!S.items.some(i=>KIND(i.id)===next && Math.hypot(i.x-sp.x,i.y-sp.y)<6)); if (sp){ const b=Math.sin(t*5)*6, ay=sp.y-(next==='star'?52:44)+b;
             c.save(); c.fillStyle='#ff4f98'; c.strokeStyle='#fff'; c.lineWidth=4; c.beginPath(); c.moveTo(sp.x,ay+18); c.lineTo(sp.x-14,ay); c.lineTo(sp.x-6,ay); c.lineTo(sp.x-6,ay-16); c.lineTo(sp.x+6,ay-16); c.lineTo(sp.x+6,ay); c.lineTo(sp.x+14,ay); c.closePath(); c.stroke(); c.fill(); c.restore(); } } }
         // placed decorations (each one pops in when it lands)
-        for (const it of S.items){ const q=it.pop==null?1:it.pop, sc=q<1?1+Math.sin(q*Math.PI)*.35:1; drawItem(c,it.id,it.x,it.y,it.v,sc); }
+        for (const it of S.items){ const q=it.pop==null?1:it.pop, sc=q<1?1+Math.sin(q*Math.PI)*.35:1; drawItem(c,it.id,it.x,it.fy!=null?it.fy:it.y,it.v,sc); }
         for (const q of S.parts){ c.globalAlpha=1-q.t/.8; c.fillStyle=q.col; c.beginPath(); c.arc(q.x,q.y,5,0,7); c.fill(); } c.globalAlpha=1;
-        for (const pp of S.pops){ const a=pp.t/1.1; c.save(); c.globalAlpha=1-a*a; c.font='900 30px Nunito, sans-serif'; c.textAlign='center'; c.lineWidth=7; c.strokeStyle='#fff'; c.fillStyle='#c2296e'; c.strokeText(pp.txt,pp.x,pp.y-a*40); c.fillText(pp.txt,pp.x,pp.y-a*40); c.restore(); }
+        for (const pp of S.pops){ const a=pp.t/1.1; c.save(); c.globalAlpha=1-a*a; c.font=`900 ${pp.big?38:30}px Nunito, sans-serif`; c.textAlign='center'; c.lineWidth=7; c.strokeStyle='#fff'; c.fillStyle=pp.big?'#e8508f':'#c2296e'; c.strokeText(pp.txt,pp.x,pp.y-a*40); c.fillText(pp.txt,pp.x,pp.y-a*40); c.restore(); }
+        // bonus countdown: a big clock at the top of the room that pulses and turns red in the last 5 seconds
+        if (S.phase==='bonus'){ const b=Math.max(0,Math.ceil(S.bonusT)), hot=S.bonusT<=5, pul=1+(hot?.08:.03)*Math.sin(t*(hot?14:6));
+          c.save(); c.translate(W0/2,40); c.scale(pul,pul); c.fillStyle=hot?'#e94b5c':'#ff7eb6'; c.strokeStyle='#fff'; c.lineWidth=5; c.beginPath(); c.roundRect(-128,-26,256,52,26); c.fill(); c.stroke();
+          c.fillStyle='#fff'; c.font='400 28px "Mochiy Pop One", Nunito, sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillText(`BONUS  0:${String(b).padStart(2,'0')}`,0,2); c.restore();
+          if (S.combo>1){ c.save(); c.font='900 26px Nunito, sans-serif'; c.textAlign='center'; c.lineWidth=6; c.strokeStyle='#fff'; c.fillStyle='#c2296e'; c.strokeText(`Combo x${S.combo}!`,W0/2,94); c.fillText(`Combo x${S.combo}!`,W0/2,94); c.restore(); } }
+        if (S.banner){ const a=S.banner.t, al=Math.min(1,a*4,(2.6-a)*2.5), sc=a<.35?.6+.4*Math.sin(a/.35*Math.PI/2)*1.08:1;
+          c.save(); c.globalAlpha=Math.max(0,al); c.translate(W0/2,H0*.42); c.scale(sc,sc); c.fillStyle='rgba(255,247,251,.96)'; c.strokeStyle='#ff7eb6'; c.lineWidth=6; c.beginPath(); c.roundRect(-300,-70,600,140,30); c.fill(); c.stroke();
+          c.textAlign='center'; c.textBaseline='middle'; c.fillStyle='#e8508f'; c.font='400 46px "Mochiy Pop One", Nunito, sans-serif'; c.fillText(S.banner.txt,0,-18);
+          c.fillStyle='#5a2a48'; let fs=20; c.font=`800 ${fs}px Nunito, sans-serif`; while (c.measureText(S.banner.sub).width>560 && fs>12){ fs--; c.font=`800 ${fs}px Nunito, sans-serif`; } c.fillText(S.banner.sub,0,32); c.restore(); }
         c.restore();
         c.lineWidth=6; c.strokeStyle='#fff'; c.beginPath(); c.roundRect(0,0,W0,H0,26); c.stroke();
         c.restore();
