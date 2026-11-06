@@ -504,7 +504,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
 <div id="skip" class="sticker chip" hidden>Tap to skip ▸</div>
 
 <section id="title" class="screen title-screen">
-  <span class="verlabel" aria-label="Version 34">v34</span>
+  <span class="verlabel" aria-label="Version 35">v35</span>
   <div class="card sticker peel title-card">
     <h1>Merry Christmas, Brooke!</h1>
     <nav class="tmenu" aria-label="Main menu">
@@ -2233,7 +2233,7 @@ $('howClose').onclick=()=>show('howto',false);
 // to the front it asks GitHub for the newest page; if that is a newer version it reloads, but only on the home page.
 (function autoUpdate(){ try {
   if (!/^https?:$/.test(location.protocol)) return;
-  const BUILD=34; let pending=0, busy=false, last=0;
+  const BUILD=35; let pending=0, busy=false, last=0;
   const tried=()=>{ try { return +sessionStorage.getItem('gb-upd-tried')||0; } catch(e){ return 0; } };
   async function check(){
     const now=Date.now(); if (busy || now-last<4000) return; busy=true; last=now;
@@ -2264,9 +2264,9 @@ $('howClose').onclick=()=>show('howto',false);
   // Android/Chrome hands us its own install prompt; keep it for when the button is tapped
   let deferred=null;
   addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferred=e; });
-  addEventListener('appinstalled',()=>{ btn.hidden=true; close(); });
-  // already opened from the Home Screen? then there's nothing to save
-  if (!IS_STANDALONE) btn.hidden=false;
+  addEventListener('appinstalled',()=>{ close(); });
+  // always shown; opened from the Home Screen it confirms the game is already saved
+  btn.hidden=false;
   if (MOB()) btn.querySelector('.hs-label').textContent='Save to your Home Screen';
   const ic={
     share:'<svg viewBox="-12 -13 24 26" fill="none" stroke="#3478f6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M-4 -2H-8V11H8V-2H4"/><path d="M0 5V-11M-4.5 -6.5L0 -11L4.5 -6.5"/></svg>',
@@ -2287,6 +2287,12 @@ $('howClose').onclick=()=>show('howto',false);
   $('hsSteps').innerHTML=steps.map((st,i)=>'<div class="hs-step"><div class="hs-num">'+(i+1)+'</div><div class="hs-ic">'+st[0]+'</div><div><b>'+st[1]+'</b><span>'+st[2]+'</span></div></div>').join('');
   const tip=IN_FRAME ? 'Tip: open the game in its own tab (not inside another page) before saving it.' : IS_IOS ? '' : 'On iPhone, open this link in Safari to save it.';
   if (tip){ $('hsTip').textContent=tip; $('hsTip').hidden=false; }
+  if (IS_STANDALONE){
+    $('hsTitle').textContent="You're all set!";
+    $('hsSub').textContent="Brooke's game is already on your Home Screen. It opens full screen, like an app.";
+    $('hsSteps').innerHTML='<div class="hs-step"><div class="hs-num">✓</div><div class="hs-ic">'+ic.app+'</div><div><b>Saved to your Home Screen</b><span>Open it any time from the Christmas icon. New versions load on their own.</span></div></div>';
+    $('hsTip').hidden=true;
+  }
   function open(){ dim.hidden=false; requestAnimationFrame(()=>requestAnimationFrame(()=>dim.classList.add('show'))); setTimeout(()=>$('saveDone').focus(),80); }
   function close(){ if (dim.hidden) return; dim.classList.remove('show'); setTimeout(()=>{ dim.hidden=true; },250); btn.focus(); }
   btn.addEventListener('click',()=>{ if (deferred){ deferred.prompt(); deferred.userChoice.finally(()=>{ deferred=null; }); } else open(); });
@@ -2294,7 +2300,7 @@ $('howClose').onclick=()=>show('howto',false);
   dim.addEventListener('click',e=>{ if (e.target===dim) close(); });
   addEventListener('keydown',e=>{ if (e.key==='Escape' && !dim.hidden){ e.stopPropagation(); close(); } },true);
   // let the game hide/show the button: window.homeScreenButton(false) hides it, (true) shows it again
-  window.homeScreenButton=on=>{ btn.hidden=IS_STANDALONE || !on; };
+  window.homeScreenButton=on=>{ btn.hidden=!on; };
 } catch(e){} })();
 (function callAv(){ const c=$('callAvatar').getContext('2d'); c.fillStyle='#efe7ff'; c.fillRect(0,0,220,220); try { Art.adele(c,110,360,{s:2.9,t:0}); } catch(e){} })();
 (function avatar(){ const c=$('avatar').getContext('2d'); c.fillStyle='#efe7ff'; c.fillRect(0,0,92,92); try { Art.adele(c,46,150,{s:1.25,t:0}); } catch(e){} })();
