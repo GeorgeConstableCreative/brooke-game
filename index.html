@@ -444,7 +444,7 @@ body:has(#xcard:not([hidden])) #topbar{z-index:50}
 .xc-go .xc-note{animation:xnUp .8s cubic-bezier(.2,1.2,.4,1) 3.1s both}
 @keyframes xnUp{to{opacity:1;transform:none}}
 /* the message is a round sticker on the front of a wrapped present with a big bow */
-.xc-present{width:min(88vw,380px);margin-top:clamp(26px,5vh,44px);filter:drop-shadow(0 14px 22px rgba(10,5,30,.45))}
+.xc-present{width:min(88vw,380px,39vh);margin-top:clamp(22px,4.4vh,44px);filter:drop-shadow(0 14px 22px rgba(10,5,30,.45))}
 .xp-bow{position:absolute;left:50%;top:0;width:46%;transform:translate(-50%,-72%);z-index:3;filter:drop-shadow(0 4px 0 rgba(0,0,0,.18))}
 .xc-go .xp-bow{animation:xpBow 2.6s ease-in-out 5s infinite}
 @keyframes xpBow{0%,100%{transform:translate(-50%,-72%) rotate(0)}10%{transform:translate(-50%,-75%) rotate(-5deg)}20%{transform:translate(-50%,-72%) rotate(4deg)}30%{transform:translate(-50%,-72%) rotate(0)}}
@@ -458,8 +458,8 @@ body:has(#xcard:not([hidden])) #topbar{z-index:50}
 .xp-sticker{position:relative;z-index:1;width:100%;max-width:300px;box-sizing:border-box;padding:clamp(14px,2.8vh,22px) 18px;border-radius:28px;background:#fffaf2;border:4px dashed #ffb3cd;
   box-shadow:0 0 0 5px #fff,0 6px 0 5px rgba(0,0,0,.12);text-align:center;transform:rotate(-3deg)}
 .xp-sticker::after{content:"";position:absolute;right:-5px;top:-5px;width:30px;height:30px;border-radius:0 24px 0 14px;background:linear-gradient(225deg,#f1e6ee 50%,#fff 50%);box-shadow:-2px 2px 3px rgba(0,0,0,.12)}
-.xc-msg{margin:0;font-family:var(--display);font-size:clamp(1.05rem,4.6vw,1.35rem);line-height:1.35;color:var(--ink)}
-.xc-sign{margin:10px 0 0;font-family:var(--display);font-size:clamp(.95rem,4.2vw,1.15rem);line-height:1.3;color:var(--pink-deep);text-wrap:balance}
+.xc-msg{margin:0;font-family:var(--display);font-size:clamp(.95rem,min(4.6vw,2.3vh),1.35rem);line-height:1.35;color:var(--ink)}
+.xc-sign{margin:8px 0 0;font-family:var(--display);font-size:clamp(.88rem,min(4.2vw,2.1vh),1.15rem);line-height:1.3;color:var(--pink-deep);text-wrap:balance}
 .xc-paw{display:inline-block;width:1.45em;height:1.45em;vertical-align:-.3em;margin-left:2px;transform:rotate(14deg);opacity:.85}
 .xc-go .xc-paw{animation:pawStamp .5s cubic-bezier(.2,1.6,.4,1) 4.2s both}
 @keyframes pawStamp{from{opacity:0;transform:rotate(14deg) scale(2.2)}to{opacity:.85;transform:rotate(14deg) scale(1)}}
@@ -617,7 +617,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
 <div id="skip" class="sticker chip" hidden>Tap to skip ▸</div>
 
 <section id="title" class="screen title-screen">
-  <span class="verlabel" aria-label="Version 49">v49</span>
+  <span class="verlabel" aria-label="Version 50">v50</span>
   <div class="card sticker peel title-card">
     <h1>Merry Christmas, Brooke!</h1>
     <nav class="tmenu" aria-label="Main menu">
@@ -2373,7 +2373,7 @@ $('arcadeBtn').onclick=()=>openMenu('arcade');
 // and George's letter on top.
 let xcRAF=0, xcT0=0, xcOpened=false, xcAuto=0;
 function xcFrame(now){ const cv=$('xcScene'); if ($('xcard').hidden){ xcRAF=0; return; }
-  const dpr=Math.min(2,window.devicePixelRatio||1), W=innerWidth, H=innerHeight;
+  const dpr=Math.min(2,window.devicePixelRatio||1), W=innerWidth, H=(typeof fullHeight==='function'?fullHeight():innerHeight); if (cv.style.height!==H+'px') cv.style.height=H+'px';
   if (cv.width!==Math.round(W*dpr) || cv.height!==Math.round(H*dpr)){ cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); }
   const c=cv.getContext('2d'); c.setTransform(dpr,0,0,dpr,0,0);
   const t=(now-xcT0)/1000, k=Math.min(W,H)/400, land=W>H, still=typeof REDUCED!=='undefined' && REDUCED;
@@ -2391,18 +2391,20 @@ function xcFrame(now){ const cv=$('xcScene'); if ($('xcard').hidden){ xcRAF=0; r
     c.fillStyle=['#ff5b8f','#ffcf5c','#7fe3c4','#8fb8ff'][(i*2+(u>.5?1:0))%4]; c.globalAlpha=on?1:.45; if (on){ c.shadowColor=c.fillStyle; c.shadowBlur=10*k; }
     c.beginPath(); c.ellipse(x,y,3.6*k,5*k,0,0,7); c.fill(); c.shadowBlur=0; } } c.globalAlpha=1;
   // snowy ground
-  const gy=H*(land?.84:.86); c.fillStyle='#f3eefb'; c.beginPath(); c.moveTo(0,gy); c.quadraticCurveTo(W*.3,gy-24*k,W*.6,gy-6*k); c.quadraticCurveTo(W*.85,gy+6*k,W,gy-12*k); c.lineTo(W,H); c.lineTo(0,H); c.closePath(); c.fill();
+  let gy=H*(land?.84:.86), fitS=1;
+  if (!land){ const bb=document.querySelector('#xcLayout .xc-btns'), r=bb&&bb.getBoundingClientRect();
+    if (r && r.height){ gy=clamp(r.bottom+10+150*k, gy, H-16); fitS=clamp((gy-(r.bottom+10))/(196*k),.42,1); } } c.fillStyle='#f3eefb'; c.beginPath(); c.moveTo(0,gy); c.quadraticCurveTo(W*.3,gy-24*k,W*.6,gy-6*k); c.quadraticCurveTo(W*.85,gy+6*k,W,gy-12*k); c.lineTo(W,H); c.lineTo(0,H); c.closePath(); c.fill();
   c.fillStyle='rgba(199,176,240,.45)'; c.beginPath(); c.ellipse(W*.5,gy+30*k,W*.6,14*k,0,0,7); c.fill();
   // tree with a glowing, slowly turning star
-  const tx=land?W*.09:W*.17, ts=k*(land?1.05:.95);
+  const ts=k*(land?1.05:.95)*fitS, tx=land?W*.09:Math.max(W*.17,92*ts+6);
   c.save(); c.translate(tx,gy+4*k); c.scale(ts,ts); try { Art.xtree(c,0,0,t); } catch(e){} c.restore();
   // hopping presents
   const gifts=land?[[W*.17,'#9fe3d0','#e94b5c',62],[W*.23,'#c7b0f0','#ffcf5c',50],[W*.7,'#ffd27f','#3ba57a',54],[W*.76,'#e94b5c','#fff',44]]:[[W*.36,'#9fe3d0','#e94b5c',54],[W*.47,'#c7b0f0','#ffcf5c',42],[W*.9,'#ffd27f','#3ba57a',46]];
-  gifts.forEach(([gx,col,rib,sz],i)=>{ const ph=((t*.6+i*.37)%2.2), hop=still||ph>.4?0:Math.sin(ph/.4*Math.PI)*16*k; try { Art.present(c,gx,gy-sz*k*.45-hop+6*k,sz*k,col,rib,Math.sin(t*2+i)*.05); } catch(e){} });
+  gifts.forEach(([gx,col,rib,sz],i)=>{ const ph=((t*.6+i*.37)%2.2), hop=still||ph>.4?0:Math.sin(ph/.4*Math.PI)*16*k; try { Art.present(c,gx,gy-sz*k*fitS*.45-hop*fitS+6*k,sz*k*fitS,col,rib,Math.sin(t*2+i)*.05); } catch(e){} });
   // Brooke: a happy hop every couple of seconds, heart eyes at the top of each hop
   const bx=land?W*.87:W*.68, cyc=2.2, ph=still?1:(t%cyc)/cyc; let hop=0, sq=0;
   if (ph<.26) hop=Math.sin(ph/.26*Math.PI)*20*k; else if (ph<.36) sq=Math.sin((ph-.26)/.1*Math.PI)*.06;
-  const top=ph>.08&&ph<.2, bs=k*(land?1.45:1.5);
+  const top=ph>.08&&ph<.2, bs=k*(land?1.45:1.5)*fitS; hop*=fitS;
   c.fillStyle='rgba(90,42,72,.16)'; c.beginPath(); c.ellipse(bx,gy+2*k,40*k*(1-hop/(60*k)),8*k,0,0,7); c.fill();
   c.save(); c.translate(bx,gy); c.rotate(still?0:Math.sin(t*1.4)*.04); c.scale(1+sq,1-sq); try { Art.mochi(c,0,-hop,{s:bs,t,happy:!top,heart:top,scarf:true}); } catch(e){} c.restore();
   // falling snow
@@ -2479,7 +2481,7 @@ $('howClose').onclick=()=>show('howto',false);
 // to the front it asks GitHub for the newest page; if that is a newer version it reloads, but only on the home page.
 (function autoUpdate(){ try {
   if (!/^https?:$/.test(location.protocol)) return;
-  const BUILD=49; let pending=0, busy=false, last=0;
+  const BUILD=50; let pending=0, busy=false, last=0;
   const tried=()=>{ try { return +sessionStorage.getItem('gb-upd-tried')||0; } catch(e){ return 0; } };
   async function check(){
     const now=Date.now(); if (busy || now-last<4000) return; busy=true; last=now;
