@@ -504,7 +504,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
 <div id="skip" class="sticker chip" hidden>Tap to skip ▸</div>
 
 <section id="title" class="screen title-screen">
-  <span class="verlabel" aria-label="Version 35">v35</span>
+  <span class="verlabel" aria-label="Version 36">v36</span>
   <div class="card sticker peel title-card">
     <h1>Merry Christmas, Brooke!</h1>
     <nav class="tmenu" aria-label="Main menu">
@@ -513,7 +513,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
       <button class="tbtn t-arcade" id="arcadeBtn"><span class="tb-spark" aria-hidden="true"></span><span class="tb-tx">Arcade</span></button>
       <button class="tbtn t-card" id="cardBtn"><span class="tb-holly" aria-hidden="true"><svg viewBox="0 0 40 30"><path d="M4 18c6-2 9-8 9-14 3 4 8 5 12 4-2 4-1 9 2 12-5 0-10 2-13 6-1-4-5-7-10-8z" fill="#3fa66b" stroke="#24734a" stroke-width="1.6" stroke-linejoin="round"/><circle cx="25" cy="22" r="4.2" fill="#e94b5c" stroke="#fff" stroke-width="1.4"/><circle cx="31" cy="17" r="3.6" fill="#e94b5c" stroke="#fff" stroke-width="1.4"/></svg></span><span class="tb-tx">Christmas card</span></button>
     </nav>
-    <div class="tfoot"><button class="tlink" id="howBtn">How to play</button><button class="tlink" id="saveBtn" type="button" hidden><span class="hs-label">Save the game to your Home Screen</span></button></div>
+    <div class="tfoot"><button class="tlink" id="howBtn">How to play</button><button class="tlink" id="saveBtn" type="button"><span class="hs-label">Save the game to your Home Screen</span></button></div>
   </div>
 </section>
 
@@ -2233,7 +2233,7 @@ $('howClose').onclick=()=>show('howto',false);
 // to the front it asks GitHub for the newest page; if that is a newer version it reloads, but only on the home page.
 (function autoUpdate(){ try {
   if (!/^https?:$/.test(location.protocol)) return;
-  const BUILD=35; let pending=0, busy=false, last=0;
+  const BUILD=36; let pending=0, busy=false, last=0;
   const tried=()=>{ try { return +sessionStorage.getItem('gb-upd-tried')||0; } catch(e){ return 0; } };
   async function check(){
     const now=Date.now(); if (busy || now-last<4000) return; busy=true; last=now;
