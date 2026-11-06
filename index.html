@@ -617,7 +617,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
 <div id="skip" class="sticker chip" hidden>Tap to skip ▸</div>
 
 <section id="title" class="screen title-screen">
-  <span class="verlabel" aria-label="Version 50">v50</span>
+  <span class="verlabel" aria-label="Version 51">v51</span>
   <div class="card sticker peel title-card">
     <h1>Merry Christmas, Brooke!</h1>
     <nav class="tmenu" aria-label="Main menu">
@@ -2311,7 +2311,7 @@ const MENU={ open:false, built:false };
 // "Turn sideways" prompt: touch devices held upright, until turned or dismissed (remembered for this visit).
 const ROT={ open:false, dismissed:false };
 try { ROT.dismissed = sessionStorage.getItem('gb-rot-ok')==='1'; } catch(e){}
-function checkRotate(){ const want = TOUCH_ONLY && innerHeight>innerWidth*1.05 && !ROT.dismissed;
+function checkRotate(){ const want = false;   // the "Turn your phone sideways" page is switched off: the game plays upright or sideways
   if (want===ROT.open) return; ROT.open=want; $('rotate').hidden=!want; if (want) setTimeout(()=>$('rotAnyway').focus(),80); }
 (function rotSetup(){ const ipad=/iPad/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1) || Math.min(screen.width,screen.height)>=700;
   if (ipad){ $('rotDevice').classList.add('ipad'); $('rotTitle').textContent='Turn your iPad sideways'; }
@@ -2481,7 +2481,7 @@ $('howClose').onclick=()=>show('howto',false);
 // to the front it asks GitHub for the newest page; if that is a newer version it reloads, but only on the home page.
 (function autoUpdate(){ try {
   if (!/^https?:$/.test(location.protocol)) return;
-  const BUILD=50; let pending=0, busy=false, last=0;
+  const BUILD=51; let pending=0, busy=false, last=0;
   const tried=()=>{ try { return +sessionStorage.getItem('gb-upd-tried')||0; } catch(e){ return 0; } };
   async function check(){
     const now=Date.now(); if (busy || now-last<4000) return; busy=true; last=now;
