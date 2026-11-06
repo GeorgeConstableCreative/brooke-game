@@ -597,7 +597,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
 <div id="skip" class="sticker chip" hidden>Tap to skip ▸</div>
 
 <section id="title" class="screen title-screen">
-  <span class="verlabel" aria-label="Version 43">v43</span>
+  <span class="verlabel" aria-label="Version 44">v44</span>
   <div class="card sticker peel title-card">
     <h1>Merry Christmas, Brooke!</h1>
     <nav class="tmenu" aria-label="Main menu">
@@ -618,7 +618,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
     <div class="xc-note">
       <span class="xc-holly"><svg viewBox="0 0 40 30" aria-hidden="true"><path d="M4 18c6-2 9-8 9-14 3 4 8 5 12 4-2 4-1 9 2 12-5 0-10 2-13 6-1-4-5-7-10-8z" fill="#3fa66b" stroke="#24734a" stroke-width="1.6" stroke-linejoin="round"/><circle cx="25" cy="22" r="4.2" fill="#e94b5c" stroke="#fff" stroke-width="1.4"/><circle cx="31" cy="17" r="3.6" fill="#e94b5c" stroke="#fff" stroke-width="1.4"/></svg></span>
       <p class="xc-dear">Dear Brooke,</p>
-      <p class="xc-msg">Help a princess kitten in a pink hoodie race from Santana Row to Boston with a mountain of presents, while Adele, as always, runs fashionably late. I hope it gives you plenty of laughs. Have a cosy, joyful Christmas and a wonderful New Year!</p>
+      <p class="xc-msg">Have a cosy, joyful Christmas and a wonderful New Year!</p>
       <p class="xc-sign"><span>Cheers,</span> George</p>
     </div>
     <div class="xc-btns"><button class="btn" id="xcPlay" type="button">Play the game</button><button class="btn alt" id="xcArcade" type="button">Arcade</button></div>
@@ -2449,7 +2449,7 @@ $('howClose').onclick=()=>show('howto',false);
 // to the front it asks GitHub for the newest page; if that is a newer version it reloads, but only on the home page.
 (function autoUpdate(){ try {
   if (!/^https?:$/.test(location.protocol)) return;
-  const BUILD=43; let pending=0, busy=false, last=0;
+  const BUILD=44; let pending=0, busy=false, last=0;
   const tried=()=>{ try { return +sessionStorage.getItem('gb-upd-tried')||0; } catch(e){ return 0; } };
   async function check(){
     const now=Date.now(); if (busy || now-last<4000) return; busy=true; last=now;
