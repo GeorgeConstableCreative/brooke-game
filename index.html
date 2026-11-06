@@ -28,7 +28,7 @@
 }
 html{background:linear-gradient(#2a1d58,#4b3486 55%,#f3eefb 88%) fixed #2a1d58}
 html,body{height:100%;margin:0;overflow:hidden;touch-action:pan-x pan-y;overscroll-behavior:none;-webkit-text-size-adjust:100%;color:var(--ink);font-family:var(--body);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:pointer}
+#game{position:fixed;top:0;left:0;width:100%;height:100%;display:block;touch-action:none;cursor:pointer}
 button{font-family:inherit;color:inherit}
 [hidden]{display:none!important}
 
@@ -110,6 +110,17 @@ html.compact #hud{padding-top:calc(max(8px,env(safe-area-inset-top,0px)) + 52px)
 #menu .menu-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 @media (max-width:360px){#menu .menu-grid{grid-template-columns:1fr}}
 #menu .mitem{grid-template-columns:auto 1fr auto;gap:12px;min-height:62px;padding:10px 14px;border-radius:22px;border:0;background:#fff7f0;box-shadow:0 4px 0 rgba(0,0,0,.18);font-family:var(--display);font-weight:400;font-size:1.02rem}
+/* offset buttons: each row steps left and right with a slight tilt, like the home page */
+#menu .menu-grid{row-gap:14px}
+#menu .mitem{transition:rotate .25s cubic-bezier(.2,.9,.3,1.2),translate .25s cubic-bezier(.2,.9,.3,1.2)}
+#menu .menu-grid .mitem:nth-child(4n+1){rotate:-1.4deg;translate:-4px 0}
+#menu .menu-grid .mitem:nth-child(4n+2){rotate:1.1deg;translate:4px 8px}
+#menu .menu-grid .mitem:nth-child(4n+3){rotate:1deg;translate:6px 0}
+#menu .menu-grid .mitem:nth-child(4n){rotate:-1.2deg;translate:-2px 8px}
+#menu .menu-grid .mitem:hover{rotate:0deg;translate:0 -2px}
+#menu #menuClose{rotate:-1.5deg}
+@media (min-width:600px){#menu .menu-grid .mitem:nth-child(4n+1){rotate:-.6deg}#menu .menu-grid .mitem:nth-child(4n+2){rotate:.5deg}#menu .menu-grid .mitem:nth-child(4n+3){rotate:.45deg}#menu .menu-grid .mitem:nth-child(4n){rotate:-.55deg}}
+@media (prefers-reduced-motion:reduce){#menu .mitem{transition:none}}
 #menu .mitem:hover{transform:translateY(-2px)}
 #menu .mitem:focus-visible{outline:3px dashed #ffcf5c;outline-offset:3px}
 #menu .mnum{width:38px;height:38px;background:#d64f8a;font-size:1rem}
@@ -168,7 +179,11 @@ html.compact #hud{padding-top:calc(max(8px,env(safe-area-inset-top,0px)) + 52px)
 #list li.got .slot span{opacity:1;transform:scale(1);animation:stick .55s cubic-bezier(.2,.9,.3,1.6)}
 #list li.got .nm{text-decoration:line-through 2px var(--pink)}
 @keyframes stick{0%{transform:scale(2.4) rotate(-30deg);opacity:0}60%{transform:scale(.85) rotate(8deg);opacity:1}100%{transform:scale(1) rotate(0)}}
-#list{display:none}#list.open{display:block}
+#list{display:none;position:relative}#list.open{display:block}
+#list .list-x{position:absolute;top:8px;right:10px;width:34px;height:34px;border-radius:50%;border:3px solid #fff;background:var(--ink);color:#fff;font-size:19px;line-height:1;cursor:pointer;pointer-events:auto;box-shadow:0 3px 0 rgba(0,0,0,.2);z-index:2}
+#list .list-x:focus-visible{outline:3px dashed var(--ink);outline-offset:2px}
+#list h3{padding-right:40px}
+#menu.is-paused .menu-title::after{content:'Jump to any section, or tap Resume';display:block;font-family:var(--body);font-size:.95rem;font-weight:800;opacity:.75;margin-top:4px}
 
 /* ---------- touch controls ---------- */
 #controls{position:fixed;z-index:11;left:0;right:0;bottom:0;pointer-events:none;display:flex;justify-content:space-between;align-items:flex-end;
@@ -532,7 +547,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
   <div class="corner-row">
     <button class="sticker chip" id="listToggle" aria-expanded="false"><span class="lt-ic" aria-hidden="true">🎁</span><span class="lt-word">List</span> <span class="num" id="listCount">0/6</span></button>
   </div>
-  <div id="list" class="sticker peel" aria-label="Shopping list"></div>
+  <div id="list" class="sticker peel" role="dialog" aria-label="Christmas List"></div>
 </div>
 
 <div id="controls" hidden>
@@ -557,7 +572,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
 <div id="skip" class="sticker chip" hidden>Tap to skip ▸</div>
 
 <section id="title" class="screen title-screen">
-  <span class="verlabel" aria-label="Version 37">v37</span>
+  <span class="verlabel" aria-label="Version 38">v38</span>
   <div class="card sticker peel title-card">
     <h1>Merry Christmas, Brooke!</h1>
     <nav class="tmenu" aria-label="Main menu">
@@ -1526,7 +1541,7 @@ const Art = (() => {
 const Snd = (() => {
   let ac=null, master, musicBus, sfxBus, crowdSrc=null, crowdGain=null, muted=false;
   const mf = m => 440*Math.pow(2,(m-69)/12);
-  function init(){ if (ac) { ac.resume?.(); return; } try { ac=new (window.AudioContext||window.webkitAudioContext)(); } catch(e){ return; }
+  function init(){ if (ac) { if (!held) ac.resume?.(); return; } try { ac=new (window.AudioContext||window.webkitAudioContext)(); } catch(e){ return; }
     master=ac.createGain(); master.gain.value=muted?0:.8; master.connect(ac.destination);
     musicBus=ac.createGain(); musicBus.gain.value=.3; musicBus.connect(master);
     sfxBus=ac.createGain(); sfxBus.gain.value=.55; sfxBus.connect(master); }
@@ -1674,7 +1689,10 @@ const Snd = (() => {
       for (const ln of lines){ const [text,lang,opt={}]=ln; u=new SpeechSynthesisUtterance(text); u.lang=lang; const v=pickVoice(lang,ALTS[lang]||[]); if (v){ u.voice=v; u.lang=v.lang; }
         u.rate=opt.rate||o.rate||1; u.pitch=opt.pitch||o.pitch||1.05; u.volume=1; speechSynthesis.speak(u); }
       if (u && o.onend) u.onend=o.onend; return true; } catch(e){ return false; } }
-  return { init, sfx, crowd, music, playSong, swell, setMuted, speak, clips, hasClips, stopClip, preloadClips, get muted(){ return muted; } };
+  // pause freezes every sound at once (music, Adele's voice, ringtone, effects) and picks up where it left off
+  let held=false;
+  function hold(on){ if (held===on) return; held=on; try { if (ac) (on?ac.suspend():ac.resume()); } catch(e){} try { on?speechSynthesis.pause():speechSynthesis.resume(); } catch(e){} }
+  return { init, sfx, crowd, music, playSong, swell, setMuted, speak, clips, hasClips, stopClip, preloadClips, hold, get held(){ return held; }, get muted(){ return muted; } };
 })();
 try { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices(); } catch(e) {}
 
@@ -1779,7 +1797,14 @@ resetRun();
 
 // Phones and tablets (touch screen, no mouse) always get the tap-only layout, in portrait or landscape.
 const TOUCH_ONLY = (()=>{ try { return matchMedia('(hover: none) and (pointer: coarse)').matches; } catch(e){ return false; } })();
-function resize(){ DPR=Math.min(2,window.devicePixelRatio||1); CW=Math.max(innerWidth,document.documentElement.clientWidth||0); CH=Math.max(innerHeight,document.documentElement.clientHeight||0); document.documentElement.classList.toggle('compact', TOUCH_ONLY || CW<700 || (CH>CW && CW<900) || CH<500); G.bandT=0; cv.width=Math.round(CW*DPR); cv.height=Math.round(CH*DPR); G.zoom=clamp(Math.min(CW,CH)/560,.55,1.6); }
+// The drawing reaches the very bottom of an iPhone: behind Safari's toolbar and the home bar, and the full screen when
+// opened from the Home Screen. A hidden 100lvh probe measures the largest viewport; the canvas is sized to that.
+const VPROBE=document.createElement('div'); VPROBE.style.cssText='position:fixed;left:0;top:0;width:0;height:100vh;height:100lvh;visibility:hidden;pointer-events:none'; document.body.appendChild(VPROBE);
+function fullHeight(){ let h=Math.max(innerHeight,document.documentElement.clientHeight||0,VPROBE.offsetHeight||0);
+  try { const sa=navigator.standalone===true || matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches;
+    if (sa && screen && screen.width){ const port=innerHeight>=innerWidth, sh=port?Math.max(screen.width,screen.height):Math.min(screen.width,screen.height); if (sh>h && sh-h<140) h=sh; } } catch(e){}
+  return h; }
+function resize(){ DPR=Math.min(2,window.devicePixelRatio||1); CW=Math.max(innerWidth,document.documentElement.clientWidth||0); CH=fullHeight(); cv.style.height=CH+'px'; document.documentElement.classList.toggle('compact', TOUCH_ONLY || CW<700 || (CH>CW && CW<900) || CH<500); G.bandT=0; cv.width=Math.round(CW*DPR); cv.height=Math.round(CH*DPR); G.zoom=clamp(Math.min(CW,CH)/560,.55,1.6); }
 try { if (/\.netlify\.app$/i.test(location.hostname)) document.documentElement.style.setProperty('--nf','56px'); } catch(e){}
 addEventListener('resize',resize); resize();
 addEventListener('orientationchange',()=>{ setTimeout(resize,120); setTimeout(resize,450); });
@@ -1879,11 +1904,13 @@ $('muteBtn').addEventListener('click',e=>{ toggleMute(); e.currentTarget.blur();
 $('scrollBtn').addEventListener('click',()=>{ scrollFlip=!scrollFlip; try{ localStorage.setItem('gb-scrollflip',scrollFlip?'1':'0'); }catch(e){} paintScrollBtn(); });
 if (TOUCH_ONLY) $('scrollBtn').hidden=true; paintScrollBtn();
 paintMute();
+function closeList(){ clearTimeout(peekList.t); $('list').classList.remove('open'); $('listToggle').setAttribute('aria-expanded','false'); }
 $('listToggle').addEventListener('click',e=>{ const l=$('list'); clearTimeout(peekList.t); const o=l.classList.toggle('open'); $('listToggle').setAttribute('aria-expanded',o); e.currentTarget.blur(); });
 
 function buildList(){
   const sec=(who,label)=>`<div class="who">${label}</div><ul>${GIFTS.filter(g=>g.who===who).map(g=>`<li id="g-${g.id}" class="${G.got.has(g.id)?'got':''}"><span class="slot"><span>${g.icon}</span></span><span class="nm">${g.name}<small>${g.where}</small></span></li>`).join('')}</ul>`;
-  $('list').innerHTML=`<h3>Shopping list</h3>${sec('ethan','Ethan, 13')}${sec('hubby','Hubby, driving instructor')}`;
+  $('list').innerHTML=`<button class="list-x" type="button" aria-label="Close the Christmas List">×</button><h3>Christmas List</h3>${sec('ethan','Ethan, 13')}${sec('hubby','Hubby, driving instructor')}`;
+  $('list').querySelector('.list-x').onclick=e=>{ e.stopPropagation(); closeList(); };
   $('listCount').textContent=`${G.got.size}/${GIFTS.length}`;
 }
 function setHUD(on){ show('hud',on); show('corner',on); show('controls',on && G.mode!=='bonus'); }
@@ -1957,7 +1984,7 @@ function peekList(){ if (document.documentElement.classList.contains('compact'))
 function collect(id){ if (G.got.has(id)) return; const g=GIFTS.find(x=>x.id===id); G.got.add(id); G.score+=100; Snd.sfx.chaching(); Snd.swell(4);
   celebrate(g); if (G.mode==='play') G.freezeT=1.1; buildList(); peekList(); const li=$('g-'+id); if (li){ li.classList.add('got'); }
   $('listCount').textContent=`${G.got.size}/${GIFTS.length}`; if (G.player && G.mode!=='bonus') burst(G.player.x,G.player.y-60,60);
-  if (G.got.size===8) setTimeout(()=>{ toast('Shopping list complete! 🎄','Every gift is bought. Now get to Adele.'); confettiRain(); },2800); }
+  if (G.got.size===GIFTS.length) setTimeout(()=>{ toast('Christmas List complete! 🎄','Every gift is bought. Now get to Adele.'); confettiRain(); },2800); }
 
 /* ---------- bosses ---------- */
 function spawnBoss(){ const k=G.L.boss;
@@ -2013,9 +2040,9 @@ function openCall(m, after){
   setTimeout(()=>{
     show('textView',false); show('callView'); $('callView').classList.remove('live'); $('callStatus').textContent='Incoming call…';
     show('callSub',false); show('callBtns'); show('callReplies',false); $('phNote').textContent='Game paused · answer the call';
-    show('phone'); G.mode='msg'; Snd.sfx.ring(); ringTimer=setInterval(()=>Snd.sfx.ring(),1600); setTimeout(()=>$('acceptBtn').focus(),60);
+    show('phone'); G.mode='msg'; Snd.sfx.ring(); ringTimer=setInterval(()=>{ if (!MENU.open) Snd.sfx.ring(); },1600); setTimeout(()=>$('acceptBtn').focus(),60);
     $('acceptBtn').onclick=()=>{ stopCall(); $('callView').classList.add('live'); show('callBtns',false);
-      let sec=0; $('callStatus').textContent='On call · 0:00'; callTimer=setInterval(()=>{ sec++; $('callStatus').textContent='On call · 0:'+String(sec).padStart(2,'0'); },1000);
+      let sec=0; $('callStatus').textContent='On call · 0:00'; callTimer=setInterval(()=>{ if (MENU.open) return; sec++; $('callStatus').textContent='On call · 0:'+String(sec).padStart(2,'0'); },1000);
       $('callSub').textContent=m.text; show('callSub'); let done=false;
       const showReplies=()=>{ if (done) return; done=true; replyButtons($('callReplies'), m, after); show('callReplies'); $('phNote').textContent='Pick a reply'; };
       if (m.clip && Snd.hasClips([m.clip]) && !muted){ Snd.clips([m.clip], showReplies); setTimeout(showReplies, 4500); return; }
@@ -2251,9 +2278,10 @@ function openMenu(only){ buildMenu(); refreshTicks(); Snd.init(); Snd.setMuted(m
   if (typeof only!=='string') only='';   // 'story' = Jump to…, 'arcade' = Arcade, '' = everything (Pause)
   document.querySelectorAll('#menu .story-part').forEach(el=>el.hidden=only==='arcade');
   document.querySelectorAll('#menu .arc-part').forEach(el=>el.hidden=only==='story');
-  $('menu').querySelector('.menu-title').textContent= only==='arcade' ? 'Christmas arcade' : only==='story' ? 'Jump to any chapter' : 'Jump to any section';
+  $('menu').querySelector('.menu-title').textContent= only==='arcade' ? 'Christmas arcade' : only==='story' ? 'Jump to any chapter' : inGame ? 'Paused' : 'Jump to any section';
+  $('menu').classList.toggle('is-paused', inGame && !only); if (inGame) Snd.hold(true);
   $('menuClose').textContent= inGame ? 'Resume' : 'Close'; show('menu'); paintPause(); setTimeout(()=>$('menu').querySelector('.menu-grid:not([hidden]) .mitem')?.focus(),60); }
-function closeMenu(){ MENU.open=false; show('menu',false); paintPause(); }
+function closeMenu(){ MENU.open=false; show('menu',false); paintPause(); Snd.hold(false); }
 function goHome(){ leaveEverything(); resetRun(); show('title'); Snd.init(); Snd.setMuted(muted); Snd.playSong('ballad'); }
 $('pauseBtn').onclick=e=>{ MENU.open?closeMenu():openMenu(); e.currentTarget.blur(); };
 $('homeBtn').onclick=e=>{ goHome(); e.currentTarget.blur(); };
@@ -2379,7 +2407,7 @@ $('howClose').onclick=()=>show('howto',false);
 // to the front it asks GitHub for the newest page; if that is a newer version it reloads, but only on the home page.
 (function autoUpdate(){ try {
   if (!/^https?:$/.test(location.protocol)) return;
-  const BUILD=37; let pending=0, busy=false, last=0;
+  const BUILD=38; let pending=0, busy=false, last=0;
   const tried=()=>{ try { return +sessionStorage.getItem('gb-upd-tried')||0; } catch(e){ return 0; } };
   async function check(){
     const now=Date.now(); if (busy || now-last<4000) return; busy=true; last=now;
