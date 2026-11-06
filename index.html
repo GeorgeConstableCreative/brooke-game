@@ -111,6 +111,18 @@ html.compact #hud{padding-top:calc(max(8px,env(safe-area-inset-top,0px)) + 52px)
 @media (max-width:360px){#menu .menu-grid{grid-template-columns:1fr}}
 #menu .mitem{grid-template-columns:auto 1fr auto;gap:12px;min-height:62px;padding:10px 14px;border-radius:22px;border:0;background:#fff7f0;box-shadow:0 4px 0 rgba(0,0,0,.18);font-family:var(--display);font-weight:400;font-size:1.02rem}
 /* offset buttons: each row steps left and right with a slight tilt, like the home page */
+#pauseOv{position:fixed;inset:0;z-index:39;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(40,16,44,.42);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+#pauseOv[hidden]{display:none}
+.po-card{width:min(100%,360px);padding:22px 22px 20px;border-radius:26px;background:#fff7fb;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;animation:poIn .38s cubic-bezier(.2,1.3,.4,1) both}
+.po-card h2{font-size:2rem;color:var(--pink-deep)}
+.po-card p{margin:0;font-weight:700;opacity:.8}
+.po-ic{width:54px;height:54px;border-radius:50%;background:var(--pink);display:grid;place-items:center;box-shadow:0 0 0 4px #fff,0 4px 0 rgba(90,42,72,.2)}
+.po-ic svg{width:26px;height:26px;fill:#fff}
+.po-btns{display:flex;flex-direction:column;gap:10px;margin-top:8px;width:100%}
+.po-btns .btn{width:100%}
+@keyframes poIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:none}}
+@media (orientation:landscape) and (max-height:520px){.po-card{padding:14px 18px;gap:5px}.po-card h2{font-size:1.5rem}.po-ic{width:42px;height:42px}.po-btns{flex-direction:row}}
+@media (prefers-reduced-motion:reduce){.po-card{animation:none}}
 #menu .menu-grid{row-gap:14px}
 #menu .mitem{transition:rotate .25s cubic-bezier(.2,.9,.3,1.2),translate .25s cubic-bezier(.2,.9,.3,1.2)}
 #menu .menu-grid .mitem:nth-child(4n+1){rotate:-1.4deg;translate:-4px 0}
@@ -559,6 +571,14 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
   <button class="iconbtn navbtn" id="homeBtn" aria-label="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2V20a1 1 0 0 1-1 1h-5v-6h-5v6h-5a1 1 0 0 1-1-1z" fill="currentColor"/></svg></button>
   <button class="iconbtn navbtn" id="pauseBtn" aria-label="Pause and jump to any section" aria-haspopup="dialog" aria-expanded="false"></button>
 </div>
+<div id="pauseOv" hidden role="dialog" aria-modal="true" aria-labelledby="poTitle">
+  <div class="po-card sticker">
+    <span class="po-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1.6"/><rect x="14" y="5" width="4" height="14" rx="1.6"/></svg></span>
+    <h2 id="poTitle">Paused</h2>
+    <p>Everything is frozen right where you left it.</p>
+    <div class="po-btns"><button class="btn" id="poResume" type="button">Resume</button><button class="btn alt" id="poJump" type="button">Jump to a section</button></div>
+  </div>
+</div>
 <div id="topbar">
   <button class="skipbtn" id="skipBtn" hidden>Skip <span aria-hidden="true">›</span></button>
   <button class="iconbtn" id="muteBtn" aria-label="Mute sound"></button>
@@ -572,7 +592,7 @@ html.compact #announce{top:auto;bottom:calc(var(--hintH,70px) + 8px);font-size:.
 <div id="skip" class="sticker chip" hidden>Tap to skip ▸</div>
 
 <section id="title" class="screen title-screen">
-  <span class="verlabel" aria-label="Version 38">v38</span>
+  <span class="verlabel" aria-label="Version 39">v39</span>
   <div class="card sticker peel title-card">
     <h1>Merry Christmas, Brooke!</h1>
     <nav class="tmenu" aria-label="Main menu">
@@ -1819,9 +1839,10 @@ function goFull(){ if (!MOB()) return; const d=document.documentElement; try { c
 const keys={}; const pad={x:0,y:0,id:null}; let zapHeld=false;
 addEventListener('keydown',e=>{
   if (e.code==='Escape' && !$('xcard').hidden){ closeCard(); return; }
-  if (e.code==='Escape' || (e.code==='KeyP' && G.mode!=='title')){ MENU.open?closeMenu():openMenu(); return; }
+  if (PAUSE.on && e.code!=='Escape' && e.code!=='KeyP' && e.code!=='KeyM') return;
+  if (e.code==='Escape' || (e.code==='KeyP' && G.mode!=='title')){ if (MENU.open) closeMenu(); else if (PAUSE.on) resumeGame(); else if (NO_PAUSE.includes(G.mode)) openMenu(); else pauseGame(); return; }
   if (e.code==='KeyM' && MENU.open){ toggleMute(); return; }
-  if (MENU.open) return;
+  if (MENU.open || PAUSE.on) return;
   if (G.mode==='mini' && MINI){ if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code) && !(e.target instanceof HTMLButtonElement)) e.preventDefault(); if (e.code==='KeyM') toggleMute(); else MINI.key&&MINI.key(e.code,true); return; }
   if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code) && !(e.target instanceof HTMLButtonElement && e.code==='Space')) e.preventDefault();
   keys[e.code]=true;
@@ -1877,7 +1898,7 @@ function paintScrollBtn(){ const b=$('scrollBtn'); if (b) b.textContent=scrollFl
 addEventListener('wheel',e=>{
   if (e.ctrlKey){ e.preventDefault(); return; }               // trackpad pinch = browser zoom: block it
   if (e.target && e.target.closest && e.target.closest('.screen,#cozyTray,#list')) return; // let menus and trays scroll normally
-  e.preventDefault(); if (MENU.open || ROT.open) return;
+  e.preventDefault(); if (MENU.open || ROT.open || PAUSE.on) return;
   const d=wheelVec(e);
   if (G.mode==='play' || G.mode==='bonus'){ const cur=scrollStick(), k=1/70;
     scrollPad.x=clamp(cur.x+d.x*k,-1,1); scrollPad.y=clamp(cur.y+d.y*k,-1,1); scrollPad.t=performance.now();
@@ -2040,9 +2061,9 @@ function openCall(m, after){
   setTimeout(()=>{
     show('textView',false); show('callView'); $('callView').classList.remove('live'); $('callStatus').textContent='Incoming call…';
     show('callSub',false); show('callBtns'); show('callReplies',false); $('phNote').textContent='Game paused · answer the call';
-    show('phone'); G.mode='msg'; Snd.sfx.ring(); ringTimer=setInterval(()=>{ if (!MENU.open) Snd.sfx.ring(); },1600); setTimeout(()=>$('acceptBtn').focus(),60);
+    show('phone'); G.mode='msg'; Snd.sfx.ring(); ringTimer=setInterval(()=>{ if (!MENU.open && !PAUSE.on) Snd.sfx.ring(); },1600); setTimeout(()=>$('acceptBtn').focus(),60);
     $('acceptBtn').onclick=()=>{ stopCall(); $('callView').classList.add('live'); show('callBtns',false);
-      let sec=0; $('callStatus').textContent='On call · 0:00'; callTimer=setInterval(()=>{ if (MENU.open) return; sec++; $('callStatus').textContent='On call · 0:'+String(sec).padStart(2,'0'); },1000);
+      let sec=0; $('callStatus').textContent='On call · 0:00'; callTimer=setInterval(()=>{ if (MENU.open || PAUSE.on) return; sec++; $('callStatus').textContent='On call · 0:'+String(sec).padStart(2,'0'); },1000);
       $('callSub').textContent=m.text; show('callSub'); let done=false;
       const showReplies=()=>{ if (done) return; done=true; replyButtons($('callReplies'), m, after); show('callReplies'); $('phNote').textContent='Pick a reply'; };
       if (m.clip && Snd.hasClips([m.clip]) && !muted){ Snd.clips([m.clip], showReplies); setTimeout(showReplies, 4500); return; }
@@ -2273,22 +2294,32 @@ function buildMenu(){ if (MENU.built) return; MENU.built=true;
   const mk=(list,box,arc)=>list.forEach(([id,name,sub],i)=>{ const b=document.createElement('button'); b.className='mitem'+(arc?' arc':''); b.dataset.id=id; b.setAttribute('aria-label',name+'. '+sub);
     b.innerHTML='<span class="mnum"></span><span class="nm"></span>'+TICK; b.querySelector('.mnum').innerHTML=arc?STAR:String(i+1); b.querySelector('.nm').textContent=name; b.onclick=()=>jump(id); box.appendChild(b); });
   mk(STORY,$('menuStory'),false); mk(ARCADE,$('menuArcade'),true); }
-function paintPause(){ const b=$('pauseBtn'); b.innerHTML=MENU.open?ICON_PLAY:ICON_PAUSE; b.setAttribute('aria-label',MENU.open?'Resume':'Pause and jump to any section'); b.setAttribute('aria-expanded',MENU.open?'true':'false'); }
+function paintPause(){ const on=MENU.open||(typeof PAUSE!=='undefined'&&PAUSE.on), b=$('pauseBtn'); b.innerHTML=on?ICON_PLAY:ICON_PAUSE; b.setAttribute('aria-label',on?'Resume':'Pause'); b.setAttribute('aria-expanded',on?'true':'false'); }
 function openMenu(only){ buildMenu(); refreshTicks(); Snd.init(); Snd.setMuted(muted); MENU.open=true; const inGame=!['title','end','credits'].includes(G.mode);
   if (typeof only!=='string') only='';   // 'story' = Jump to…, 'arcade' = Arcade, '' = everything (Pause)
   document.querySelectorAll('#menu .story-part').forEach(el=>el.hidden=only==='arcade');
   document.querySelectorAll('#menu .arc-part').forEach(el=>el.hidden=only==='story');
-  $('menu').querySelector('.menu-title').textContent= only==='arcade' ? 'Christmas arcade' : only==='story' ? 'Jump to any chapter' : inGame ? 'Paused' : 'Jump to any section';
-  $('menu').classList.toggle('is-paused', inGame && !only); if (inGame) Snd.hold(true);
+  $('menu').querySelector('.menu-title').textContent= only==='arcade' ? 'Christmas arcade' : only==='story' ? 'Jump to any chapter' : 'Jump to any section';
+  if (inGame) Snd.hold(true);
   $('menuClose').textContent= inGame ? 'Resume' : 'Close'; show('menu'); paintPause(); setTimeout(()=>$('menu').querySelector('.menu-grid:not([hidden]) .mitem')?.focus(),60); }
 function closeMenu(){ MENU.open=false; show('menu',false); paintPause(); Snd.hold(false); }
+// Pause: the game freezes on the screen it's on (play, a cutscene, the robo-taxi, an arcade game or Adele's call),
+// all sound stops, and a small Paused card sits on top. Resume carries on exactly where it stopped.
+const PAUSE={ on:false };
+const NO_PAUSE=['title','end','credits'];
+function pauseGame(){ if (PAUSE.on || MENU.open) return; if (NO_PAUSE.includes(G.mode)){ openMenu(); return; }
+  PAUSE.on=true; Snd.hold(true); show('pauseOv'); paintPause(); setTimeout(()=>$('poResume').focus(),60); }
+function resumeGame(){ if (!PAUSE.on) return; PAUSE.on=false; show('pauseOv',false); Snd.hold(false); paintPause(); }
+$('poResume').onclick=resumeGame;
+$('poJump').onclick=()=>{ PAUSE.on=false; show('pauseOv',false); openMenu(); };
+document.addEventListener('visibilitychange',()=>{ if (document.visibilityState==='hidden' && !NO_PAUSE.includes(G.mode) && !MENU.open) pauseGame(); });
 function goHome(){ leaveEverything(); resetRun(); show('title'); Snd.init(); Snd.setMuted(muted); Snd.playSong('ballad'); }
-$('pauseBtn').onclick=e=>{ MENU.open?closeMenu():openMenu(); e.currentTarget.blur(); };
+$('pauseBtn').onclick=e=>{ if (MENU.open) closeMenu(); else if (PAUSE.on) resumeGame(); else pauseGame(); e.currentTarget.blur(); };
 $('homeBtn').onclick=e=>{ goHome(); e.currentTarget.blur(); };
 // Skip: in a cut-scene it skips the scene; anywhere else in the story it jumps to the next section.
 const NEXT_CHAP={ santana:'taxi', taxi:'airport', airport:'flight', flight:'logan', logan:'finale', finale:'credits' };
 const SKIP_MODES=['play','bonus','cut','trans','msg','msgwait','end'];
-function skipSection(){ if (MENU.open) return;
+function skipSection(){ if (MENU.open) return; resumeGame();
   if (G.mode==='cut' && CUT){ CUT.t=Math.max(CUT.t,.7); skipCut(); return; }
   const nx=NEXT_CHAP[G.chap]; if (nx) jump(nx); }
 $('skipBtn').onclick=e=>{ skipSection(); e.currentTarget.blur(); };
@@ -2352,7 +2383,7 @@ $('xcWrap').addEventListener('keydown',e=>{ if (e.key==='Enter'||e.key===' '){ e
 $('xcClose').onclick=closeCard;
 $('xcPlay').onclick=()=>{ clearTimeout(xcAuto); show('xcard',false); $('startBtn').click(); };
 $('xcArcade').onclick=()=>{ clearTimeout(xcAuto); show('xcard',false); openMenu('arcade'); };
-function leaveEverything(){ closeMenu(); stopMini(); stopCall(); Snd.stopClip(); try{ speechSynthesis.cancel(); }catch(e){} Snd.crowd(false);
+function leaveEverything(){ closeMenu(); PAUSE.on=false; show('pauseOv',false); Snd.hold(false); paintPause(); stopMini(); stopCall(); Snd.stopClip(); try{ speechSynthesis.cancel(); }catch(e){} Snd.crowd(false);
   CUT=null; B=null; G.boss=null; if (G.player) G.player.buzz=0;
   ['title','howto','phone','trans','end','credits','againBtn','skip','skipBtn','announce','celebrate'].forEach(id=>show(id,false)); $('toasts').innerHTML=''; setHUD(false); G.mode='title'; }
 function jump(id){ Snd.init(); Snd.setMuted(muted); Snd.preloadClips(); leaveEverything();
@@ -2378,7 +2409,7 @@ function exitToArcade(){ stopMini(); G.mode='title'; show('title'); openMenu(); 
 $('miniExit').onclick=exitToArcade;
 function miniBand(){ const nf=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nf'))||0;
   const hb=$('miniHud').getBoundingClientRect(), tb=$('topbar').getBoundingClientRect(), nl=$('navL').getBoundingClientRect(); return { t:Math.max(hb.bottom,tb.bottom,nl.bottom)+8, b:CH-nf-8 }; }
-cv.addEventListener('pointerdown',e=>{ if (G.mode==='mini' && MINI && !MENU.open){ MINI.down&&MINI.down(e.clientX,e.clientY,e); } });
+cv.addEventListener('pointerdown',e=>{ if (G.mode==='mini' && MINI && !MENU.open && !PAUSE.on){ MINI.down&&MINI.down(e.clientX,e.clientY,e); } });
 addEventListener('pointermove',e=>{ if (G.mode==='mini' && MINI) MINI.move&&MINI.move(e.clientX,e.clientY,e); });
 addEventListener('pointerup',e=>{ if (G.mode==='mini' && MINI) MINI.up&&MINI.up(e.clientX,e.clientY,e); });
 addEventListener('pointercancel',e=>{ if (G.mode==='mini' && MINI) MINI.up&&MINI.up(e.clientX,e.clientY,e,true); });
@@ -2407,7 +2438,7 @@ $('howClose').onclick=()=>show('howto',false);
 // to the front it asks GitHub for the newest page; if that is a newer version it reloads, but only on the home page.
 (function autoUpdate(){ try {
   if (!/^https?:$/.test(location.protocol)) return;
-  const BUILD=38; let pending=0, busy=false, last=0;
+  const BUILD=39; let pending=0, busy=false, last=0;
   const tried=()=>{ try { return +sessionStorage.getItem('gb-upd-tried')||0; } catch(e){ return 0; } };
   async function check(){
     const now=Date.now(); if (busy || now-last<4000) return; busy=true; last=now;
@@ -3093,9 +3124,9 @@ const MINIS = (() => {
 
 let last=performance.now();
 function frame(now){
-  const dt=Math.min(.05,(now-last)/1000); last=now; G.t+=dt;
+  const dt=Math.min(.05,(now-last)/1000); last=now; if (!(typeof PAUSE!=='undefined' && PAUSE.on)) G.t+=dt;   // paused: even the snow and twinkles hold still
   if (document.hidden){ requestAnimationFrame(frame); return; }
-  const ud = (MENU.open || ROT.open) ? 0 : dt;
+  const ud = (MENU.open || ROT.open || PAUSE.on) ? 0 : dt;
   if (ud>0){
     if (G.mode==='play') updatePlay(ud);
     else if (G.mode==='msgwait'||G.mode==='msg') updateFx(ud*.3);
@@ -3112,7 +3143,7 @@ function frame(now){
   else Art.title(ctx,CW,CH,G.t,flakes);
   updateSC(dt); drawSC(ctx);
   const navOn = G.mode!=='title' || !!MINI; if ($('navL').hidden===navOn) $('navL').hidden=!navOn;
-  const skOn = !MENU.open && !MINI && SKIP_MODES.includes(G.mode) && !!NEXT_CHAP[G.chap]; if ($('skipBtn').hidden===skOn) $('skipBtn').hidden=!skOn;
+  const skOn = !MENU.open && !PAUSE.on && !MINI && SKIP_MODES.includes(G.mode) && !!NEXT_CHAP[G.chap]; if ($('skipBtn').hidden===skOn) $('skipBtn').hidden=!skOn;
   requestAnimationFrame(frame);
 }
 document.addEventListener('visibilitychange',()=>{ if (document.hidden) { for (const k in keys) keys[k]=false; } });
